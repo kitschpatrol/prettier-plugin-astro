@@ -32,6 +32,8 @@ This is a reluctant fork of the official [Prettier Plugin for Astro](https://git
 
 - Aggressive dependency updates, which might be breaking changes for users of older Astro versions < v6.
 
+- Package is ESM-only.
+
 - Repository project template aligned with [kitschpatrol/create-project](https://github.com/kitschpatrol/create-project). (Massive diff, but simplifies management on my end.)
 
 ## Branches
