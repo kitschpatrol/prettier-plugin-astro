@@ -4,9 +4,12 @@ export default defineConfig({
 	attw: {
 		profile: 'esm-only',
 	},
-	dts: true,
+	dts: {
+		sourcemap: true,
+	},
 	fixedExtension: false,
 	platform: 'node',
 	publint: true,
 	tsconfig: 'tsconfig.build.json',
+	sourcemap: true,
 })

@@ -8,7 +8,7 @@ export function getVisitorKeys(node: any): string[] {
 				key !== 'position' && // skip position metadata
 				key !== 'type' && // skip node type itself
 				!Array.isArray(value)) ||
-			(value.length > 0 && typeof value[0] === 'object')
+			(Array.isArray(value) && value.length > 0 && typeof value[0] === 'object')
 		);
 	});
 }

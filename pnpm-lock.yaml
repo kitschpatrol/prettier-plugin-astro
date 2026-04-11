@@ -11,12 +11,6 @@ importers:
       '@astrojs/compiler':
         specifier: ^3.0.1
         version: 3.0.1
-      '@types/node':
-        specifier: ~20.19.39
-        version: 20.19.39
-      prettier:
-        specifier: ^3.8.2
-        version: 3.8.2
       sass-formatter:
         specifier: ^0.8.0
         version: 0.8.0
@@ -27,9 +21,15 @@ importers:
       '@kitschpatrol/shared-config':
         specifier: ^7.3.0
         version: 7.3.0(@emnapi/core@1.9.2)(@emnapi/runtime@1.9.2)(@pnpm/logger@1001.0.1)(@types/estree@1.0.8)(@types/node@20.19.39)(@types/unist@3.0.3)(@typescript-eslint/utils@8.58.1(eslint@9.39.4(jiti@2.6.1))(typescript@6.0.2))(jiti@2.6.1)(mdast-util-from-markdown@2.0.3)(mdast-util-mdx@3.0.0)(micromark-util-types@2.0.2)(postcss-html@1.8.1)(remark-parse@11.0.0)(stylelint-order@8.1.1(stylelint@17.6.0(typescript@6.0.2)))(svelte@5.55.3(@typescript-eslint/types@8.58.1))(typescript@6.0.2)(vitest@4.1.4(@types/node@20.19.39)(vite@8.0.8(@types/node@20.19.39)(jiti@2.6.1)(yaml@2.8.3)))
+      '@types/node':
+        specifier: ~20.19.39
+        version: 20.19.39
       bumpp:
         specifier: ^11.0.1
         version: 11.0.1
+      prettier:
+        specifier: ^3.8.2
+        version: 3.8.2
       publint:
         specifier: ^0.3.18
         version: 0.3.18
