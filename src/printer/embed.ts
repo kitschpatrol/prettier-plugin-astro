@@ -54,12 +54,12 @@ export const embed = ((path: AstPath, options: Options) => {
 		if (!node) return undefined;
 
 		if (node.type === 'expression') {
-			// Extract script tag contents and replace with placeholders so that
-			// Babel's JSX parser doesn't try to parse script content as JSX.
+			// Extract script and style tag contents and replace with placeholders so
+			// that Babel's JSX parser doesn't try to parse their content as JSX.
 			// See: https://github.com/withastro/prettier-plugin-astro/issues/452
-			const scriptPlaceholders: { placeholder: string; content: string; typeAttr?: string }[] =
-				[];
-			const nodeWithPlaceholders = replaceScriptChildren(node, scriptPlaceholders);
+			// See: https://github.com/withastro/prettier-plugin-astro/issues/454
+			const rawTagPlaceholders: RawTagPlaceholder[] = [];
+			const nodeWithPlaceholders = replaceRawTagChildren(node, rawTagPlaceholders);
 
 			const jsxNode = makeNodeJSXCompatible<ExpressionNode>(nodeWithPlaceholders);
 			const textContent = printRaw(jsxNode);
@@ -73,20 +73,47 @@ export const embed = ((path: AstPath, options: Options) => {
 
 			content = stripTrailingHardline(content);
 
-			// Replace script placeholders with separately-formatted script content
-			for (const { placeholder, content: scriptText, typeAttr } of scriptPlaceholders) {
-				const parser = inferParserByTypeAttribute(typeAttr || '');
-				let formattedScript = await wrapParserTryCatch(textToDoc, scriptText, {
-					...options,
-					parser,
-				});
-				formattedScript = stripTrailingHardline(formattedScript);
+			// Replace placeholders with separately-formatted content
+			for (const entry of rawTagPlaceholders) {
+				let formattedContent: Doc;
+
+				if (entry.tagName === 'script') {
+					const parser = inferParserByTypeAttribute(entry.typeAttr || '');
+					formattedContent = await wrapParserTryCatch(textToDoc, entry.content, {
+						...options,
+						parser,
+					});
+				} else {
+					// style tag
+					const langValue = entry.langAttr?.toLowerCase();
+					if (langValue === 'sass') {
+						const lineEnding = parserOption?.endOfLine?.toUpperCase() === 'CRLF' ? 'CRLF' : 'LF';
+						const sassOptions: Partial<SassFormatterConfig> = {
+							tabSize: parserOption.tabWidth,
+							insertSpaces: !parserOption.useTabs,
+							lineEnding,
+						};
+						const { result: raw } = manualDedent(entry.content);
+						const formatted = SassFormatter.Format(raw, sassOptions).trim();
+						formattedContent = join(hardline, formatted.split('\n'));
+					} else {
+						// css, scss, less, or default to css
+						const styleParser: BuiltInParserName =
+							langValue === 'scss' || langValue === 'less' ? langValue : 'css';
+						formattedContent = await wrapParserTryCatch(textToDoc, entry.content, {
+							...options,
+							parser: styleParser,
+						});
+					}
+				}
+
+				formattedContent = stripTrailingHardline(formattedContent);
 
 				content = mapDoc(content, (doc) => {
-					if (typeof doc === 'string' && doc.includes(placeholder)) {
-						const parts = doc.split(placeholder);
+					if (typeof doc === 'string' && doc.includes(entry.placeholder)) {
+						const parts = doc.split(entry.placeholder);
 						if (parts.length === 2) {
-							return [parts[0], formattedScript, parts[1]];
+							return [parts[0], formattedContent, parts[1]];
 						}
 					}
 					return doc;
@@ -337,32 +364,50 @@ function makeNodeJSXCompatible<T>(node: any): T {
 	}
 }
 
+/** Tags whose content is raw text (not JSX) and must be extracted before Babel parsing */
+const rawContentTags = ['script', 'style'] as const;
+
+interface RawTagPlaceholder {
+	placeholder: string;
+	content: string;
+	tagName: (typeof rawContentTags)[number];
+	typeAttr?: string; // for script
+	langAttr?: string; // for style
+}
+
 /**
- * Replace the children of any script elements in an expression node with placeholder
- * text nodes. This prevents Babel's JSX parser from trying to parse script content
- * (which is raw JavaScript) as JSX when the script tag appears inside an expression.
+ * Replace the children of any raw-content elements (script, style) in an expression
+ * node with placeholder text nodes. This prevents Babel's JSX parser from trying to
+ * parse their content as JSX when they appear inside an expression.
+ *
+ * See: https://github.com/withastro/prettier-plugin-astro/issues/452
+ * See: https://github.com/withastro/prettier-plugin-astro/issues/454
  */
-function replaceScriptChildren(
-	node: any,
-	scriptPlaceholders: { placeholder: string; content: string; typeAttr?: string }[],
-): any {
+function replaceRawTagChildren(node: any, placeholders: RawTagPlaceholder[]): any {
 	const newNode = { ...node };
 	if (isNodeWithChildren(newNode)) {
 		newNode.children = newNode.children.map((child: any) => {
-			if (child.type === 'element' && child.name === 'script' && child.children.length) {
-				const placeholder = `__ASTRO_SCRIPT_PLACEHOLDER_${scriptPlaceholders.length}__`;
+			if (
+				child.type === 'element' &&
+				rawContentTags.includes(child.name) &&
+				child.children.length
+			) {
+				const placeholder = `__ASTRO_RAW_TAG_PLACEHOLDER_${placeholders.length}__`;
 				const content = printRaw(child);
-				const typeAttr = child.attributes?.find(
-					(a: AttributeNode) => a.name === 'type',
-				)?.value;
-				scriptPlaceholders.push({ placeholder, content, typeAttr });
+				placeholders.push({
+					placeholder,
+					content,
+					tagName: child.name,
+					typeAttr: child.attributes?.find((a: AttributeNode) => a.name === 'type')?.value,
+					langAttr: child.attributes?.find((a: AttributeNode) => a.name === 'lang')?.value,
+				});
 				return {
 					...child,
 					children: [{ type: 'text', value: placeholder }],
 				};
 			}
 			if (isNodeWithChildren(child)) {
-				return replaceScriptChildren(child, scriptPlaceholders);
+				return replaceRawTagChildren(child, placeholders);
 			}
 			return child;
 		});

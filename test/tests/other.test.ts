@@ -59,6 +59,14 @@ test('Can format an Astro file with scripts in different languages', files, 'oth
 
 test('Can format an Astro file with a conditional script tag inside it', files, 'other/with-conditional-script');
 
+test('Can format an Astro file with a conditional style tag inside it', files, 'other/with-conditional-style');
+
+test(
+	'Can format an Astro file with conditional script and style tags inside it',
+	files,
+	'other/with-conditional-script-and-style',
+);
+
 test(
 	'Can format an Astro file with a HTML style prettier ignore comment: https://prettier.io/docs/en/ignore.html',
 	files,
