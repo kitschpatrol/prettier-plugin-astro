@@ -54,8 +54,9 @@ export const embed = ((path: AstPath, options: Options) => {
 		if (!node) return undefined;
 
 		if (node.type === 'expression') {
-			// Extract script and style tag contents and replace with placeholders so
-			// that Babel's JSX parser doesn't try to parse their content as JSX.
+			// Extract script and style elements and replace with self-closing
+			// placeholder components so Babel's JSX parser doesn't try to parse
+			// their content as JSX.
 			// See: https://github.com/withastro/prettier-plugin-astro/issues/452
 			// See: https://github.com/withastro/prettier-plugin-astro/issues/454
 			const rawTagPlaceholders: RawTagPlaceholder[] = [];
@@ -73,7 +74,8 @@ export const embed = ((path: AstPath, options: Options) => {
 
 			content = stripTrailingHardline(content);
 
-			// Replace placeholders with separately-formatted content
+			// Replace self-closing placeholder components with fully-rendered
+			// script/style tags, matching the format of the top-level handlers.
 			for (const entry of rawTagPlaceholders) {
 				let formattedContent: Doc;
 
@@ -108,12 +110,32 @@ export const embed = ((path: AstPath, options: Options) => {
 				}
 
 				formattedContent = stripTrailingHardline(formattedContent);
+				const isEmpty = /^\s*$/.test(entry.content);
+
+				// Build the full tag Doc matching top-level script/style formatting:
+				// <tag attrs>\n  content\n</tag>
+				const fullTagDoc: Doc = [
+					entry.openingTag,
+					indent([isEmpty ? '' : hardline, formattedContent]),
+					isEmpty ? '' : hardline,
+					`</${entry.tagName}>`,
+				];
 
 				content = mapDoc(content, (doc) => {
 					if (typeof doc === 'string' && doc.includes(entry.placeholder)) {
 						const parts = doc.split(entry.placeholder);
 						if (parts.length === 2) {
-							return [parts[0], formattedContent, parts[1]];
+							if (entry.isDirectChild) {
+								// Direct children: placeholder replaced the entire element,
+								// so insert the fully-rendered tag Doc
+								return [parts[0], fullTagDoc, parts[1]];
+							}
+							// Nested children: placeholder is inside the tag, the tag
+							// structure is preserved in the doc. Replace content only.
+							if (isEmpty) {
+								return [parts[0], parts[1]];
+							}
+							return [parts[0], indent([hardline, formattedContent]), hardline, parts[1]];
 						}
 					}
 					return doc;
@@ -145,6 +167,14 @@ export const embed = ((path: AstPath, options: Options) => {
 
 				return doc;
 			});
+
+			// Force multi-line format for expressions containing raw content tags
+			// (script/style), since their content has hardlines that need proper
+			// indentation context. Without this, babel may keep the expression on
+			// one line, causing misaligned content after placeholder replacement.
+			if (rawTagPlaceholders.length > 0) {
+				return ['{', indent([hardline, astroDoc]), hardline, lineSuffixBoundary, '}'];
+			}
 
 			return group(['{', indent([softline, astroDoc]), softline, lineSuffixBoundary, '}']);
 		}
@@ -371,6 +401,8 @@ interface RawTagPlaceholder {
 	placeholder: string;
 	content: string;
 	tagName: (typeof rawContentTags)[number];
+	openingTag: string; // the serialized opening tag, e.g. '<script is:inline>'
+	isDirectChild: boolean; // true if direct child of expression (vs nested in fragment)
 	typeAttr?: string; // for script
 	langAttr?: string; // for style
 }
@@ -383,7 +415,11 @@ interface RawTagPlaceholder {
  * See: https://github.com/withastro/prettier-plugin-astro/issues/452
  * See: https://github.com/withastro/prettier-plugin-astro/issues/454
  */
-function replaceRawTagChildren(node: any, placeholders: RawTagPlaceholder[]): any {
+function replaceRawTagChildren(
+	node: any,
+	placeholders: RawTagPlaceholder[],
+	isTopLevel = true,
+): any {
 	const newNode = { ...node };
 	if (isNodeWithChildren(newNode)) {
 		newNode.children = newNode.children.map((child: any) => {
@@ -394,20 +430,47 @@ function replaceRawTagChildren(node: any, placeholders: RawTagPlaceholder[]): an
 			) {
 				const placeholder = `__ASTRO_RAW_TAG_PLACEHOLDER_${placeholders.length}__`;
 				const content = printRaw(child);
+
+				// Build the opening tag string from the original element
+				const attrs = (child.attributes || [])
+					.map((a: AttributeNode) => {
+						if (a.kind === 'empty') return a.name;
+						if (a.kind === 'expression') return `${a.name}={${a.value}}`;
+						if (a.kind === 'spread') return `{...${a.name}}`;
+						return `${a.name}="${a.value}"`;
+					})
+					.join(' ');
+				const openingTag = attrs ? `<${child.name} ${attrs}>` : `<${child.name}>`;
+
 				placeholders.push({
 					placeholder,
 					content,
 					tagName: child.name,
+					openingTag,
+					// Whether this tag is a direct child of the expression (not nested
+					// inside a fragment/element). Direct children are replaced entirely
+					// so babel formats the expression around a simple identifier. Nested
+					// children keep their tag structure for proper fragment formatting.
+					isDirectChild: isTopLevel,
 					typeAttr: child.attributes?.find((a: AttributeNode) => a.name === 'type')?.value,
 					langAttr: child.attributes?.find((a: AttributeNode) => a.name === 'lang')?.value,
 				});
+
+				if (isTopLevel) {
+					// Replace the entire element with a text placeholder.
+					// Babel sees it as a simple identifier, keeping it on its own
+					// line when the expression handler forces multi-line format.
+					return { type: 'text', value: placeholder };
+				}
+				// Nested: replace only children, preserving the tag structure so
+				// babel can format it properly within fragments/wrappers.
 				return {
 					...child,
 					children: [{ type: 'text', value: placeholder }],
 				};
 			}
 			if (isNodeWithChildren(child)) {
-				return replaceRawTagChildren(child, placeholders);
+				return replaceRawTagChildren(child, placeholders, false);
 			}
 			return child;
 		});
