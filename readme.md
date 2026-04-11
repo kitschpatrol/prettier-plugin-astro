@@ -1,12 +1,12 @@
 <!-- title -->
 
-# prettier-plugin-astro
+# @kitschpatrol/prettier-plugin-astro
 
 <!-- /title -->
 
 <!-- badges -->
 
-[![NPM Package prettier-plugin-astro](https://img.shields.io/npm/v/prettier-plugin-astro.svg)](https://npmjs.com/package/prettier-plugin-astro)
+[![NPM Package @kitschpatrol/prettier-plugin-astro](https://img.shields.io/npm/v/@kitschpatrol/prettier-plugin-astro.svg)](https://npmjs.com/package/@kitschpatrol/prettier-plugin-astro)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/kitschpatrol/prettier-plugin-astro/actions/workflows/ci.yml/badge.svg)](https://github.com/kitschpatrol/prettier-plugin-astro/actions/workflows/ci.yml)
 
@@ -32,13 +32,23 @@ This is a reluctant fork of the official [Prettier Plugin for Astro](https://git
 
 - Aggressive dependency updates, which might be breaking changes for users of older Astro versions < v6.
 
-- Repository project template aligned with [kitschpatrol/create-project](https://github.com/kitschpatrol/create-project). (Simply for ease of management on my end.)
+- Repository project template aligned with [kitschpatrol/create-project](https://github.com/kitschpatrol/create-project). (Massive diff, but simplifies management on my end.)
+
+## Branches
+
+- [main](https://github.com/kitschpatrol/prettier-plugin-astro/tree/main) Tracks upstream without modifications.
+- [fix-nested-script-tags](https://github.com/kitschpatrol/prettier-plugin-astro/tree/fix-nested-script-tags) Clean merge-able branch of changes.
+- [fork-release](https://github.com/kitschpatrol/prettier-plugin-astro/tree/fork-release) Branch with additional project template and readme changes for NPM releases.
 
 ## Availability
 
 This package is periodically published from its [fork-release branch](https://github.com/kitschpatrol/prettier-plugin-astro/tree/fork-release) to NPM as @kitschpatrol/prettier-plugin-astro since I need it in some other public projects.
 
-A more merge-able branch of changes is available here: [kitschpatrol/prettier-plugin-astro/tree/fix-nested-script-tags](https://github.com/kitschpatrol/prettier-plugin-astro/tree/fix-nested-script-tags)
+To install:
+
+```sh
+pnpm add -D @kitschpatrol/prettier-plugin-astro
+```
 
 It will be deprecated when fixes are available upstream.
 

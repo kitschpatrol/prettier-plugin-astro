@@ -1,6 +1,6 @@
 {
-	"name": "prettier-plugin-astro",
-	"version": "0.0.0",
+	"name": "@kitschpatrol/prettier-plugin-astro",
+	"version": "0.14.0",
 	"description": "A fork of Prettier Plugin Astro with minor fixes.",
 	"keywords": [
 		"prettier-plugin",
@@ -42,7 +42,7 @@
 		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"fix": "ksc fix",
 		"lint": "ksc lint",
-		"release": "bumpp --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
+		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
 		"test": "vitest run"
 	},
 	"dependencies": {
@@ -71,5 +71,8 @@
 			"name": "node",
 			"version": ">=22.18.0"
 		}
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
