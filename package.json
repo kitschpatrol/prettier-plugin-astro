@@ -1,63 +1,75 @@
 {
-  "name": "prettier-plugin-astro",
-  "version": "0.14.2",
-  "type": "module",
-  "description": "A Prettier Plugin for formatting Astro files",
-  "main": "dist/index.js",
-  "files": [
-    "dist/**",
-    "workers/*"
-  ],
-  "engines": {
-    "node": "^14.15.0 || >=16.0.0"
-  },
-  "packageManager": "pnpm@8.6.2",
-  "homepage": "https://github.com/withastro/prettier-plugin-astro/",
-  "issues": {
-    "url": "https://github.com/withastro/prettier-plugin-astro/issues"
-  },
-  "license": "MIT",
-  "keywords": [
-    "prettier-plugin",
-    "prettier",
-    "astro",
-    "formatter"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/withastro/prettier-plugin-astro.git"
-  },
-  "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "test": "vitest run",
-    "test:watch": "vitest -w",
-    "test:ui": "vitest --ui",
-    "lint": "eslint .",
-    "lint:fix": "pnpm lint --fix",
-    "format": "biome format --write",
-    "release": "pnpm build && changeset publish"
-  },
-  "dependencies": {
-    "@astrojs/compiler": "^2.9.1",
-    "prettier": "^3.7.0",
-    "sass-formatter": "^0.7.6"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "1.8.1",
-    "@changesets/cli": "^2.26.1",
-    "@rollup/plugin-commonjs": "^25.0.0",
-    "@rollup/plugin-typescript": "^11.1.1",
-    "@types/node": "^20.2.5",
-    "@vitest/ui": "^0.31.3",
-    "eslint": "^9.8.0",
-    "eslint-plugin-regexp": "^2.6.0",
-    "eslint-plugin-prettier-doc": "^1.1.0",
-    "rollup": "^3.23.0",
-    "tslib": "^2.5.2",
-    "typescript": "^5.5.4",
-    "vite": "^4.4.3",
-    "typescript-eslint": "^8.0.1",
-    "vitest": "^0.31.3"
-  }
+	"name": "prettier-plugin-astro",
+	"version": "0.0.0",
+	"description": "A fork of Prettier Plugin Astro with minor fixes.",
+	"keywords": [
+		"prettier-plugin",
+		"prettier",
+		"astro",
+		"formatter"
+	],
+	"homepage": "https://github.com/kitschpatrol/prettier-plugin-astro",
+	"bugs": "https://github.com/kitschpatrol/prettier-plugin-astro/issues",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kitschpatrol/prettier-plugin-astro.git"
+	},
+	"license": "MIT",
+	"contributors": [
+		{
+			"name": "Eric Mika",
+			"email": "eric@ericmika.com",
+			"url": "https://ericmika.com"
+		}
+	],
+	"sideEffects": false,
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"files": [
+		"dist/*"
+	],
+	"scripts": {
+		"bench": "vitest bench --run --compare test/benchmarks/baseline.json",
+		"bench:baseline": "vitest bench --run --outputJson test/benchmarks/baseline.json",
+		"build": "tsdown",
+		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"fix": "ksc fix",
+		"lint": "ksc lint",
+		"release": "bumpp --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@astrojs/compiler": "^3.0.1",
+		"@types/node": "~20.19.39",
+		"prettier": "^3.8.2",
+		"sass-formatter": "^0.8.0"
+	},
+	"devDependencies": {
+		"@arethetypeswrong/core": "^0.18.2",
+		"@kitschpatrol/shared-config": "^7.3.0",
+		"bumpp": "^11.0.1",
+		"publint": "^0.3.18",
+		"shx": "^0.4.0",
+		"tsdown": "^0.21.7",
+		"typescript": "~6.0.2",
+		"vite": "^8.0.8",
+		"vitest": "^4.1.4"
+	},
+	"packageManager": "pnpm@10.33.0",
+	"engines": {
+		"node": "^14.15.0 || >=16.0.0"
+	},
+	"devEngines": {
+		"runtime": {
+			"name": "node",
+			"version": ">=22.18.0"
+		}
+	}
 }

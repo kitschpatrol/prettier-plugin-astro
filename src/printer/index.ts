@@ -48,8 +48,7 @@ const {
 
 let ignoreNext = false;
 
-// https://prettier.io/docs/en/plugins.html#print
-// eslint-disable-next-line @typescript-eslint/no-shadow
+// https://prettier.io/docs/en/plugins.html#print 
 export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 	const node = path.node;
 

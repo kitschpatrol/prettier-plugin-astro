@@ -1,52 +1,51 @@
-name: 'CI'
+name: CI
 
 on:
   push:
-    branches:
-      - main
-      - next
-  pull_request:
+    branches: [main, fork-release]
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  build:
+  ci:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+
     strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node_version: [18, 20]
-        include:
-          - os: windows-latest
-            node_version: 18
-          - os: macos-latest
-            node_version: 18
       fail-fast: false
-    env:
-      LANG: en-us
-    name: 'Test: node-${{ matrix.node_version }}, ${{ matrix.os }}'
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
     steps:
-      - name: Check out code using Git
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
-      - name: Install Tools & Dependencies
-        uses: ./.github/actions/install
+      - name: Install pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5
 
-      - name: Build prettier-plugin-astro
-        run: pnpm build
+      - name: Setup Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
+        with:
+          node-version: 24
+          cache: 'pnpm'
 
-      - name: Test
-        run: pnpm test
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-  lint:
-    runs-on: ubuntu-latest
-    name: 'Lint: node-16, ubuntu-latest'
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Tools & Dependencies
-        uses: ./.github/actions/install
-
-      - name: Build prettier-plugin-astro
-        run: pnpm build
+      - name: Build
+        run: pnpm run build
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm run lint
+
+      - name: Test
+        run: pnpm run test

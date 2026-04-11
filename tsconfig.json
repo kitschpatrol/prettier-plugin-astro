@@ -1,14 +1,10 @@
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    "removeComments": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "verbatimModuleSyntax": true,
-    "types": ["vite/client"]
-  }
+	"extends": "@kitschpatrol/typescript-config",
+	"compilerOptions": {
+		"types": ["node", "vite/client"]
+	},
+
+	// Includes project dot-files files for typescript-eslint integration
+	"include": ["**/*", "**/**.*"],
+	"exclude": ["**/dist/", "test/fixtures"]
 }
