@@ -54,7 +54,14 @@ export const embed = ((path: AstPath, options: Options) => {
 		if (!node) return undefined;
 
 		if (node.type === 'expression') {
-			const jsxNode = makeNodeJSXCompatible<ExpressionNode>(node);
+			// Extract script tag contents and replace with placeholders so that
+			// Babel's JSX parser doesn't try to parse script content as JSX.
+			// See: https://github.com/withastro/prettier-plugin-astro/issues/452
+			const scriptPlaceholders: { placeholder: string; content: string; typeAttr?: string }[] =
+				[];
+			const nodeWithPlaceholders = replaceScriptChildren(node, scriptPlaceholders);
+
+			const jsxNode = makeNodeJSXCompatible<ExpressionNode>(nodeWithPlaceholders);
 			const textContent = printRaw(jsxNode);
 
 			let content: Doc;
@@ -65,6 +72,26 @@ export const embed = ((path: AstPath, options: Options) => {
 			});
 
 			content = stripTrailingHardline(content);
+
+			// Replace script placeholders with separately-formatted script content
+			for (const { placeholder, content: scriptText, typeAttr } of scriptPlaceholders) {
+				const parser = inferParserByTypeAttribute(typeAttr || '');
+				let formattedScript = await wrapParserTryCatch(textToDoc, scriptText, {
+					...options,
+					parser,
+				});
+				formattedScript = stripTrailingHardline(formattedScript);
+
+				content = mapDoc(content, (doc) => {
+					if (typeof doc === 'string' && doc.includes(placeholder)) {
+						const parts = doc.split(placeholder);
+						if (parts.length === 2) {
+							return [parts[0], formattedScript, parts[1]];
+						}
+					}
+					return doc;
+				});
+			}
 
 			// HACK: Bit of a weird hack to get if a document is exclusively comments
 			// Using `mapDoc` directly to build the array for some reason caused it to always be undefined? Not sure why
@@ -308,6 +335,39 @@ function makeNodeJSXCompatible<T>(node: any): T {
 
 		return attr;
 	}
+}
+
+/**
+ * Replace the children of any script elements in an expression node with placeholder
+ * text nodes. This prevents Babel's JSX parser from trying to parse script content
+ * (which is raw JavaScript) as JSX when the script tag appears inside an expression.
+ */
+function replaceScriptChildren(
+	node: any,
+	scriptPlaceholders: { placeholder: string; content: string; typeAttr?: string }[],
+): any {
+	const newNode = { ...node };
+	if (isNodeWithChildren(newNode)) {
+		newNode.children = newNode.children.map((child: any) => {
+			if (child.type === 'element' && child.name === 'script' && child.children.length) {
+				const placeholder = `__ASTRO_SCRIPT_PLACEHOLDER_${scriptPlaceholders.length}__`;
+				const content = printRaw(child);
+				const typeAttr = child.attributes?.find(
+					(a: AttributeNode) => a.name === 'type',
+				)?.value;
+				scriptPlaceholders.push({ placeholder, content, typeAttr });
+				return {
+					...child,
+					children: [{ type: 'text', value: placeholder }],
+				};
+			}
+			if (isNodeWithChildren(child)) {
+				return replaceScriptChildren(child, scriptPlaceholders);
+			}
+			return child;
+		});
+	}
+	return newNode;
 }
 
 /**
