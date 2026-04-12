@@ -42,7 +42,7 @@
 		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"fix": "ksc fix",
 		"lint": "ksc lint",
-		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish",
+		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish --tag latest",
 		"test": "vitest run"
 	},
 	"dependencies": {
@@ -52,7 +52,7 @@
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
 		"@kitschpatrol/shared-config": "^7.3.0",
-		"@types/node": "~20.19.39",
+		"@types/node": "~22.18.13",
 		"bumpp": "^11.0.1",
 		"prettier": "^3.8.2",
 		"publint": "^0.3.18",

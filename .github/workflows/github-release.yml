@@ -41,9 +41,9 @@ jobs:
         run: |
           TAG=$(git tag --contains HEAD | grep -E '^v?[0-9]' | head -n 1)
           echo "🏷️ Tag for commit is: $TAG"
-          BRANCH=$(git branch -r --contains tags/${GITHUB_REF_NAME} | grep 'origin/main' | grep 'origin/fork-release' | xargs)
+          BRANCH=$(git branch -r --contains tags/${GITHUB_REF_NAME} | grep 'origin/fork-release' xargs)
           if [[ -z "$BRANCH" ]]; then
-            echo "🚨 Tag is not on main or fork-release branch"
+            echo "🚨 Tag is not on fork-release branch"
           else
             echo "🕊️ Current branch is: $BRANCH"
           fi
