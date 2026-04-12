@@ -1,6 +1,6 @@
 {
 	"name": "@kitschpatrol/prettier-plugin-astro",
-	"version": "0.14.0",
+	"version": "0.14.1-fork.1",
 	"description": "A fork of Prettier Plugin Astro with minor fixes.",
 	"keywords": [
 		"prettier-plugin",
