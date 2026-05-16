@@ -21,10 +21,12 @@ export async function format(
 		if (e instanceof Error) {
 			throw e;
 		}
+
 		if (typeof e === 'string') {
 			throw new Error(e);
 		}
 	}
+
 	return {
 		formatted: '',
 		cursorOffset: -1,
@@ -46,10 +48,12 @@ async function markdownFormat(
 		if (e instanceof Error) {
 			throw e;
 		}
+
 		if (typeof e === 'string') {
 			throw new Error(e);
 		}
 	}
+
 	return {
 		formatted: '',
 		cursorOffset: -1,
@@ -64,8 +68,10 @@ function getFiles(file: any, path: string, isMarkdown = false) {
 	let input: string = file[`/test/fixtures/${path}/input.${ext}`];
 	let output: string = file[`/test/fixtures/${path}/output.${ext}`];
 	// workaround: normalize end of lines to pass windows ci
-	if (input) input = input.replace(/\r\n|\r/g, '\n');
-	if (output) output = output.replace(/\r\n|\r/g, '\n');
+	if (input) {input = input.replace(/\r\n|\r/g, '\n');}
+
+	if (output) {output = output.replace(/\r\n|\r/g, '\n');}
+
 	return { input, output };
 }
 
@@ -80,6 +86,7 @@ function getOptions(files: any, path: string) {
 	} catch {
 		opts = {};
 	}
+
 	return opts;
 }
 

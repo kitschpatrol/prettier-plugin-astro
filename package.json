@@ -43,30 +43,30 @@
 		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"fix": "ksc fix",
 		"lint": "ksc lint",
-		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') && pnpm publish --tag latest",
+		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest",
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@astrojs/compiler": "^3.0.1",
+		"@astrojs/compiler": "^4.0.0",
 		"sass-formatter": "^0.8.0"
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.2",
-		"@kitschpatrol/shared-config": "^7.4.0",
+		"@kitschpatrol/shared-config": "^7.6.0",
 		"@types/node": "~22.18.13",
-		"bumpp": "^11.0.1",
-		"prettier": "^3.8.2",
-		"publint": "^0.3.18",
+		"bumpp": "^11.1.0",
+		"prettier": "^3.8.3",
+		"publint": "^0.3.21",
 		"shx": "^0.4.0",
-		"tsdown": "^0.21.8",
-		"typescript": "~6.0.2",
-		"vite": "^8.0.8",
-		"vitest": "^4.1.4"
+		"tsdown": "^0.22.0",
+		"typescript": "~6.0.3",
+		"vite": "^8.0.13",
+		"vitest": "^4.1.6"
 	},
 	"peerDependencies": {
 		"prettier": "^3.7.0"
 	},
-	"packageManager": "pnpm@10.33.0",
+	"packageManager": "pnpm@11.1.2",
 	"engines": {
 		"node": ">=18.0.0"
 	},

@@ -73,6 +73,7 @@ export function printRaw(node: anyNode, stripLeadingAndTrailingNewline = false):
 	if (startsWithLinebreak(raw)) {
 		raw = raw.substring(raw.indexOf('\n') + 1);
 	}
+
 	if (endsWithLinebreak(raw)) {
 		raw = raw.substring(0, raw.lastIndexOf('\n'));
 		if (raw.charAt(raw.length - 1) === '\r') {
@@ -165,8 +166,10 @@ export function shouldHugEnd(node: anyNode, opts: ParserOptions): boolean {
 	}
 
 	const lastChild = children[children.length - 1];
-	if (isExpressionNode(lastChild)) return true;
-	if (isTagLikeNode(lastChild)) return true;
+	if (isExpressionNode(lastChild)) {return true;}
+
+	if (isTagLikeNode(lastChild)) {return true;}
+
 	return !isTextNodeEndingWithWhitespace(lastChild);
 }
 
@@ -223,16 +226,19 @@ export function manualDedent(input: string): {
 	// 2. count tabSize
 	let char = '';
 	for (const line of result.split('\n')) {
-		if (!line) continue;
+		if (!line) {continue;}
+
 		// if any line begins with a non-whitespace char, minTabSize is 0
 		if (line[0] && /^\S/.test(line[0])) {
 			minTabSize = 0;
 			break;
 		}
+
 		const match = /^(\s+)\S+/.exec(line); // \S ensures we don’t count lines of pure whitespace
 		if (match) {
-			if (match[1] && !char) char = match[1][0];
-			if (match[1].length < minTabSize) minTabSize = match[1].length;
+			if (match[1] && !char) {char = match[1][0];}
+
+			if (match[1].length < minTabSize) {minTabSize = match[1].length;}
 		}
 	}
 
@@ -274,7 +280,7 @@ export function isTagLikeNode(node: anyNode): node is TagLikeNode {
  */
 export function getSiblings(path: AstPath): anyNode[] {
 	const parent = path.getParentNode();
-	if (!parent) return [];
+	if (!parent) {return [];}
 
 	return getChildren(parent);
 }
@@ -283,7 +289,8 @@ export function getNextNode(path: AstPath): anyNode | null {
 	const node = path.getNode();
 	if (node) {
 		const siblings = getSiblings(path);
-		if (node.position?.start === siblings[siblings.length - 1].position?.start) return null;
+		if (node.position?.start === siblings[siblings.length - 1].position?.start) {return null;}
+
 		for (let i = 0; i < siblings.length; i++) {
 			const sibling = siblings[i];
 			if (sibling.position?.start === node.position?.start && i !== siblings.length - 1) {
@@ -291,11 +298,13 @@ export function getNextNode(path: AstPath): anyNode | null {
 			}
 		}
 	}
+
 	return null;
 }
 
 export const isPreTagContent = (path: AstPath): boolean => {
-	if (!path || !path.stack || !Array.isArray(path.stack)) return false;
+	if (!path || !path.stack || !Array.isArray(path.stack)) {return false;}
+
 	return path.stack.some(
 		(node: anyNode) =>
 			(node.type === 'element' && node.name.toLowerCase() === 'pre') ||
@@ -362,6 +371,7 @@ export function inferParserByTypeAttribute(type: string): BuiltInParserName {
 			if (type.endsWith('json') || type.endsWith('importmap') || type === 'speculationrules') {
 				return 'json';
 			}
+
 			return 'babel-ts';
 	}
 }

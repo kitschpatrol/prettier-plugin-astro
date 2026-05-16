@@ -51,7 +51,7 @@ export const embed = ((path: AstPath, options: Options) => {
 	return async (textToDoc, print) => {
 		const node = path.node;
 
-		if (!node) return undefined;
+		if (!node) {return undefined;}
 
 		if (node.type === 'expression') {
 			// Extract script and style elements and replace with self-closing
@@ -130,14 +130,17 @@ export const embed = ((path: AstPath, options: Options) => {
 								// so insert the fully-rendered tag Doc
 								return [parts[0], fullTagDoc, parts[1]];
 							}
+
 							// Nested children: placeholder is inside the tag, the tag
 							// structure is preserved in the doc. Replace content only.
 							if (isEmpty) {
 								return [parts[0], parts[1]];
 							}
+
 							return [parts[0], indent([hardline, formattedContent]), hardline, parts[1]];
 						}
 					}
+
 					return doc;
 				});
 			}
@@ -434,9 +437,12 @@ function replaceRawTagChildren(
 				// Build the opening tag string from the original element
 				const attrs = (child.attributes || [])
 					.map((a: AttributeNode) => {
-						if (a.kind === 'empty') return a.name;
-						if (a.kind === 'expression') return `${a.name}={${a.value}}`;
-						if (a.kind === 'spread') return `{...${a.name}}`;
+						if (a.kind === 'empty') {return a.name;}
+
+						if (a.kind === 'expression') {return `${a.name}={${a.value}}`;}
+
+						if (a.kind === 'spread') {return `{...${a.name}}`;}
+
 						return `${a.name}="${a.value}"`;
 					})
 					.join(' ');
@@ -462,6 +468,7 @@ function replaceRawTagChildren(
 					// line when the expression handler forces multi-line format.
 					return { type: 'text', value: placeholder };
 				}
+
 				// Nested: replace only children, preserving the tag structure so
 				// babel can format it properly within fragments/wrappers.
 				return {
@@ -469,12 +476,15 @@ function replaceRawTagChildren(
 					children: [{ type: 'text', value: placeholder }],
 				};
 			}
+
 			if (isNodeWithChildren(child)) {
 				return replaceRawTagChildren(child, placeholders, false);
 			}
+
 			return child;
 		});
 	}
+
 	return newNode;
 }
 
@@ -514,6 +524,7 @@ async function embedStyle(
 				'</style>',
 			];
 		}
+
 		case 'sass': {
 			const lineEnding = options?.endOfLine?.toUpperCase() === 'CRLF' ? 'CRLF' : 'LF';
 			const sassOptions: Partial<SassFormatterConfig> = {
@@ -539,6 +550,7 @@ async function embedStyle(
 				'</style>',
 			];
 		}
+
 		case undefined: {
 			const node = path.getNode();
 

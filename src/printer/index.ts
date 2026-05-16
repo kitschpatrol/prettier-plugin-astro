@@ -98,12 +98,15 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 				if (hasTwoOrMoreNewlines) {
 					return [hardline, hardline];
 				}
+
 				if (hasOneOrMoreNewlines) {
 					return hardline;
 				}
+
 				if (hasWhiteSpace) {
 					return line;
 				}
+
 				return '';
 			}
 
@@ -234,12 +237,15 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 						} else if (isInlineElement(path, opts, node)) {
 							noHugSeparatorStart = line;
 						}
+
 						trimTextNodeLeft(firstChild);
 					}
+
 					if (!hugEnd && lastChild && isTextNode(lastChild)) {
 						if (isInlineElement(path, opts, node) && !didSetEndSeparator) {
 							noHugSeparatorEnd = line;
 						}
+
 						trimTextNodeRight(lastChild);
 					}
 				}
@@ -313,6 +319,7 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 				default:
 					break;
 			}
+
 			return '';
 		}
 
@@ -331,6 +338,7 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 			if (nextNode && isTagLikeNode(nextNode)) {
 				trailingLine = hardline;
 			}
+
 			return ['<!--', getUnencodedText(node), '-->', trailingLine];
 
 		default: {
@@ -355,6 +363,7 @@ function splitTextToDocs(node: TextNode): Doc[] {
 	if (startsWithLinebreak(text)) {
 		docs[0] = hardline;
 	}
+
 	if (startsWithLinebreak(text, 2)) {
 		docs = [hardline, ...docs];
 	}
@@ -362,6 +371,7 @@ function splitTextToDocs(node: TextNode): Doc[] {
 	if (endsWithLinebreak(text)) {
 		docs[docs.length - 1] = hardline;
 	}
+
 	if (endsWithLinebreak(text, 2)) {
 		docs = [...docs, hardline];
 	}

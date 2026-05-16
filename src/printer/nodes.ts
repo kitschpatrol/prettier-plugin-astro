@@ -31,16 +31,10 @@ export type anyNode =
 export type {
 	AttributeNode,
 	CommentNode,
-	ComponentNode,
-	CustomElementNode,
-	DoctypeNode,
-	ElementNode,
 	ExpressionNode,
 	FragmentNode,
-	FrontmatterNode,
 	Node,
 	ParentLikeNode,
-	RootNode,
 	TagLikeNode,
 	TextNode,
 };

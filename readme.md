@@ -7,7 +7,7 @@
 <!-- badges -->
 
 [![NPM Package @kitschpatrol/prettier-plugin-astro](https://img.shields.io/npm/v/@kitschpatrol/prettier-plugin-astro.svg)](https://npmjs.com/package/@kitschpatrol/prettier-plugin-astro)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](http://trac.enlightenment.org/e/browser/trunk/imlib2/COPYING)
 [![CI](https://github.com/kitschpatrol/prettier-plugin-astro/actions/workflows/ci.yml/badge.svg)](https://github.com/kitschpatrol/prettier-plugin-astro/actions/workflows/ci.yml)
 
 <!-- /badges -->
