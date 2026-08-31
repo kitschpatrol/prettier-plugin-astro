@@ -68,6 +68,8 @@ test(
 	'other/with-conditional-script-and-style',
 );
 
+test('Can format TypeScript inside a script tag', files, 'other/script-typescript');
+
 test(
 	'Can format an Astro file with a HTML style prettier ignore comment: https://prettier.io/docs/en/ignore.html',
 	files,
@@ -147,3 +149,15 @@ test('Can ignore self-closing elements', files, 'other/ignore-self-close');
 test('can format spread attributes', files, 'other/spread-attributes');
 
 test('can format with cursor position', files, 'other/format-with-cursor-position', false, 313);
+
+test('Can format doctypes with extra attributes', files, 'other/doctype-with-extra-attributes');
+
+test('Can hug inline elements', files, 'other/hugging');
+
+test(
+	'Can format frontmatter preceded by whitespace',
+	files,
+	'other/frontmatter-leading-whitespace',
+);
+
+test('Can format expressions with parenthesized types', files, 'other/parenthesized-type');
