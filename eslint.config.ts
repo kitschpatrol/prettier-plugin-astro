@@ -4,6 +4,10 @@ export default eslintConfig(
 	{
 		ignores: ['test/fixtures/**/*'],
 		rules: {
+			// Node 18 supports Unicode regexes, but not the newer Unicode sets flag.
+			'require-unicode-regexp': ['error', { requireFlag: 'u' }],
+			// This plugin traverses compiler ASTs, whose children are arrays, not DOM collections.
+			'unicorn/better-dom-traversing': 'off',
 			complexity: 'off',
 			'arrow-body-style': 'off',
 			'capitalized-comments': 'off',

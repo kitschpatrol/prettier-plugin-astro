@@ -33,8 +33,8 @@ export const parsers: Record<string, Parser> = {
 			// we can't add the closing bracket right afterwards
 			return `<>{${text}\n}</>`;
 		},
-		parse(text, opts) {
-			const ast = babelParser.parse(text, opts);
+		parse(text, options_) {
+			const ast = babelParser.parse(text, options_);
 
 			return {
 				...ast,

@@ -16,8 +16,8 @@
 
 <!-- badges -->
 
-[![NPM Package @kitschpatrol/prettier-plugin-astro](https://img.shields.io/npm/v/@kitschpatrol/prettier-plugin-astro.svg)](https://npmjs.com/package/@kitschpatrol/prettier-plugin-astro)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](http://trac.enlightenment.org/e/browser/trunk/imlib2/COPYING)
+[![NPM Package @kitschpatrol/prettier-plugin-astro](https://img.shields.io/npm/v/@kitschpatrol/prettier-plugin-astro.svg)](https://www.npmjs.com/package/@kitschpatrol/prettier-plugin-astro)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/docbook/xslt10-stylesheets/blob/efd62655c11cc8773708df7a843613fa1e932bf8/xsl/COPYING#L27)
 [![CI](https://github.com/kitschpatrol/prettier-plugin-astro/actions/workflows/ci.yml/badge.svg)](https://github.com/kitschpatrol/prettier-plugin-astro/actions/workflows/ci.yml)
 
 <!-- /badges -->

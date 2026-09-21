@@ -1,8 +1,8 @@
-export function getVisitorKeys(node: any): string[] {
-	if (!node || typeof node !== 'object') {return [];}
+export function getVisitorKeys(node: unknown): string[] {
+	if (node === null || typeof node !== 'object') {return [];}
 
 	return Object.keys(node).filter((key) => {
-		const value = node[key];
+		const value = (node as Record<string, unknown>)[key];
 		return (
 			(typeof value === 'object' &&
 				value !== null &&

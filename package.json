@@ -40,10 +40,10 @@
 		"bench": "vitest bench --run --compare test/benchmarks/baseline.json",
 		"bench:baseline": "vitest bench --run --outputJson test/benchmarks/baseline.json",
 		"build": "tsdown",
-		"clean": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
+		"clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"fix": "ksc fix",
 		"lint": "ksc lint",
-		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest",
+		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && pnpm publish --otp $(op item get npm --otp) --tag latest",
 		"test": "vitest run"
 	},
 	"dependencies": {
@@ -52,28 +52,28 @@
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
-		"@kitschpatrol/shared-config": "^7.6.4",
-		"@types/node": "~22.19.21",
-		"bumpp": "^12.2.0",
-		"prettier": "^3.9.6",
-		"publint": "^0.3.23",
+		"@kitschpatrol/shared-config": "^8.9.0",
+		"@types/node": "~24.13.4",
+		"bumpp": "^12.3.0",
+		"prettier": "^3.9.8",
+		"publint": "^0.3.24",
 		"shx": "^0.4.0",
-		"tsdown": "^0.22.14",
-		"typescript": "~5.9.3",
-		"vite": "^8.2.1",
-		"vitest": "^4.1.10"
+		"tsdown": "^0.23.0",
+		"typescript": "~6.0.3",
+		"vite": "^8.3.0",
+		"vitest": "^5.0.1"
 	},
 	"peerDependencies": {
 		"prettier": "^3.7.0"
 	},
-	"packageManager": "pnpm@11.21.0",
+	"packageManager": "pnpm@12.4.1",
 	"engines": {
 		"node": ">=18.0.0"
 	},
 	"devEngines": {
 		"runtime": {
 			"name": "node",
-			"version": ">=22.22.2"
+			"version": ">=24.16.0"
 		}
 	},
 	"publishConfig": {

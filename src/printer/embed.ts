@@ -51,7 +51,7 @@ export const embed = ((path: AstPath, options: Options) => {
 	return async (textToDoc, print) => {
 		const node = path.node;
 
-		if (!node) {return undefined;}
+		if (node === null || node === undefined) {return undefined;}
 
 		if (node.type === 'expression') {
 			// Extract script and style elements and replace with self-closing
@@ -80,7 +80,7 @@ export const embed = ((path: AstPath, options: Options) => {
 				let formattedContent: Doc;
 
 				if (entry.tagName === 'script') {
-					const parser = inferParserByTypeAttribute(entry.typeAttr || '');
+					const parser = inferParserByTypeAttribute(entry.typeAttr ?? '');
 					formattedContent = await wrapParserTryCatch(textToDoc, entry.content, {
 						...options,
 						parser,
@@ -110,7 +110,7 @@ export const embed = ((path: AstPath, options: Options) => {
 				}
 
 				formattedContent = stripTrailingHardline(formattedContent);
-				const isEmpty = /^\s*$/.test(entry.content);
+				const isEmpty = /^\s*$/u.test(entry.content);
 
 				// Build the full tag Doc matching top-level script/style formatting:
 				// <tag attrs>\n  content\n</tag>
@@ -124,20 +124,21 @@ export const embed = ((path: AstPath, options: Options) => {
 				content = mapDoc(content, (doc) => {
 					if (typeof doc === 'string' && doc.includes(entry.placeholder)) {
 						const parts = doc.split(entry.placeholder);
+						const [before = '', after = ''] = parts;
 						if (parts.length === 2) {
 							if (entry.isDirectChild) {
 								// Direct children: placeholder replaced the entire element,
 								// so insert the fully-rendered tag Doc
-								return [parts[0], fullTagDoc, parts[1]];
+								return [before, fullTagDoc, after];
 							}
 
 							// Nested children: placeholder is inside the tag, the tag
 							// structure is preserved in the doc. Replace content only.
 							if (isEmpty) {
-								return [parts[0], parts[1]];
+								return [before, after];
 							}
 
-							return [parts[0], indent([hardline, formattedContent]), hardline, parts[1]];
+							return [before, indent([hardline, formattedContent]), hardline, after];
 						}
 					}
 
@@ -187,16 +188,16 @@ export const embed = ((path: AstPath, options: Options) => {
 			const value = node.value.trim();
 			const name = node.name.trim();
 
-			const attrNodeValue = await wrapParserTryCatch(textToDoc, value, {
+			const attributeNodeValue = await wrapParserTryCatch(textToDoc, value, {
 				...options,
 				parser: 'astroExpressionParser',
 			});
 
 			if (name === value && options.astroAllowShorthand) {
-				return [line, '{', attrNodeValue, '}'];
+				return [line, '{', attributeNodeValue, '}'];
 			}
 
-			return [line, name, '=', '{', attrNodeValue, '}'];
+			return [line, name, '=', '{', attributeNodeValue, '}'];
 		}
 
 		if (node.type === 'attribute' && node.kind === 'spread') {
@@ -223,11 +224,11 @@ export const embed = ((path: AstPath, options: Options) => {
 		}
 
 		// Script tags
-		if (node.type === 'element' && node.name === 'script' && node.children.length) {
-			const typeAttribute = node.attributes.find((attr) => attr.name === 'type')?.value;
+		if (node.type === 'element' && node.name === 'script' && node.children.length > 0) {
+			const typeAttribute = node.attributes.find((attribute) => attribute.name === 'type')?.value;
 
 			let parser: BuiltInParserName = 'babel-ts';
-			if (typeAttribute) {
+			if (typeAttribute !== undefined && typeAttribute !== '') {
 				parser = inferParserByTypeAttribute(typeAttribute);
 			}
 
@@ -238,7 +239,7 @@ export const embed = ((path: AstPath, options: Options) => {
 			});
 
 			formattedScript = stripTrailingHardline(formattedScript);
-			const isEmpty = /^\s*$/.test(scriptContent);
+			const isEmpty = /^\s*$/u.test(scriptContent);
 
 			// print
 			const attributes = path.map(print, 'attributes');
@@ -261,10 +262,10 @@ export const embed = ((path: AstPath, options: Options) => {
 			const content = printRaw(node);
 			let parserLang: supportedStyleLang | undefined = 'css';
 
-			if (node.attributes) {
-				const langAttribute = node.attributes.filter((x) => x.name === 'lang');
-				if (langAttribute.length) {
-					const styleLang = langAttribute[0].value.toLowerCase() as supportedStyleLang;
+			if (node.attributes !== null && node.attributes !== undefined) {
+				const langAttribute = node.attributes.find((attribute) => attribute.name === 'lang');
+				if (langAttribute !== undefined) {
+					const styleLang = langAttribute.value.toLowerCase() as supportedStyleLang;
 					parserLang = supportedStyleLangValues.includes(styleLang) ? styleLang : undefined;
 				}
 			}
@@ -276,15 +277,15 @@ export const embed = ((path: AstPath, options: Options) => {
 	};
 }) satisfies Embed;
 
-async function wrapParserTryCatch(cb: TextToDoc, text: string, options: Options) {
+async function wrapParserTryCatch(callback: TextToDoc, text: string, options: Options) {
 	try {
-		return await cb(text, options);
-	} catch (e) {
+		return await callback(text, options);
+	} catch (error) {
 		// If we couldn't parse the expression (ex: syntax error) and we throw here, Prettier fallback to `print` and we'll
 		// get a totally useless error message (ex: unhandled node type). An undocumented way to work around this is to set
 		// `PRETTIER_DEBUG=1`, but nobody know that exists / want to do that just to get useful error messages. So we force it on
 		process.env.PRETTIER_DEBUG = 'true';
-		throw e;
+		throw error;
 	}
 }
 
@@ -309,9 +310,8 @@ function makeNodeJSXCompatible<T>(node: any): T {
 			if (isTagLikeNode(child)) {
 				child.attributes = child.attributes.map(makeAttributeJSXCompatible);
 
-				if (!childBundle[childBundleIndex]) {
-					childBundle[childBundleIndex] = [];
-				}
+				const bundle = childBundle[childBundleIndex] ?? [];
+				childBundle[childBundleIndex] = bundle;
 
 				if (isNodeWithChildren(child)) {
 					child = makeNodeJSXCompatible<typeof child>(child);
@@ -320,11 +320,11 @@ function makeNodeJSXCompatible<T>(node: any): T {
 				// If we don't have a previous children, or it's not an element AND
 				// we have a next children, and it's an element. Add the current children to the bundle
 				if (
-					(!previousChildren || isTextNode(previousChildren)) &&
 					nextChildren &&
+					(!previousChildren || isTextNode(previousChildren)) &&
 					isTagLikeNode(nextChildren)
 				) {
-					childBundle[childBundleIndex].push(child);
+					bundle.push(child);
 					return result;
 				}
 
@@ -332,11 +332,11 @@ function makeNodeJSXCompatible<T>(node: any): T {
 				// we have a next children, and it's also an element. Add the current children to the bundle
 				if (
 					previousChildren &&
-					isTagLikeNode(previousChildren) &&
 					nextChildren &&
+					isTagLikeNode(previousChildren) &&
 					isTagLikeNode(nextChildren)
 				) {
-					childBundle[childBundleIndex].push(child);
+					bundle.push(child);
 					return result;
 				}
 
@@ -344,15 +344,15 @@ function makeNodeJSXCompatible<T>(node: any): T {
 				// Create a fake parent, and add all the previous encountered elements as children of it
 				if (
 					(!nextChildren || isTextNode(nextChildren)) &&
-					childBundle[childBundleIndex].length > 0
+					bundle.length > 0
 				) {
-					childBundle[childBundleIndex].push(child);
+					bundle.push(child);
 
 					const parentNode: FragmentNode = {
 						type: 'fragment',
 						name: '',
 						attributes: [],
-						children: childBundle[childBundleIndex],
+						children: bundle,
 					};
 
 					childBundleIndex += 1;
@@ -370,30 +370,30 @@ function makeNodeJSXCompatible<T>(node: any): T {
 
 	return newNode;
 
-	function makeAttributeJSXCompatible(attr: AttributeNode): AttributeNode {
+	function makeAttributeJSXCompatible(attribute: AttributeNode): AttributeNode {
 		// Transform shorthand attributes into an empty attribute, ex: `{shorthand}` becomes `shorthand` and wrap it
 		// so we can transform it back into {}
-		if (attr.kind === 'shorthand') {
-			attr.kind = 'empty';
-			attr.name = openingBracketReplace + attr.name + closingBracketReplace;
+		if (attribute.kind === 'shorthand') {
+			attribute.kind = 'empty';
+			attribute.name = openingBracketReplace + attribute.name + closingBracketReplace;
 		}
 
 		// For spreads, we don't need to do anything because it should already be JSX compatible
-		if (attr.kind !== 'spread') {
-			if (attr.name.includes('@')) {
-				attr.name = attr.name.replaceAll('@', atSignReplace);
+		if (attribute.kind !== 'spread') {
+			if (attribute.name.includes('@')) {
+				attribute.name = attribute.name.replaceAll('@', () => atSignReplace);
 			}
 
-			if (attr.name.includes('.')) {
-				attr.name = attr.name.replaceAll('.', dotReplace);
+			if (attribute.name.includes('.')) {
+				attribute.name = attribute.name.replaceAll('.', () => dotReplace);
 			}
 
-			if (attr.name.includes('?')) {
-				attr.name = attr.name.replaceAll('?', interrogationReplace);
+			if (attribute.name.includes('?')) {
+				attribute.name = attribute.name.replaceAll('?', () => interrogationReplace);
 			}
 		}
 
-		return attr;
+		return attribute;
 	}
 }
 
@@ -429,13 +429,13 @@ function replaceRawTagChildren(
 			if (
 				child.type === 'element' &&
 				rawContentTags.includes(child.name) &&
-				child.children.length
+				child.children.length > 0
 			) {
 				const placeholder = `__ASTRO_RAW_TAG_PLACEHOLDER_${placeholders.length}__`;
 				const content = printRaw(child);
 
 				// Build the opening tag string from the original element
-				const attrs = (child.attributes || [])
+				const attributes: string = (child.attributes ?? [])
 					.map((a: AttributeNode) => {
 						if (a.kind === 'empty') {return a.name;}
 
@@ -446,7 +446,7 @@ function replaceRawTagChildren(
 						return `${a.name}="${a.value}"`;
 					})
 					.join(' ');
-				const openingTag = attrs ? `<${child.name} ${attrs}>` : `<${child.name}>`;
+				const openingTag = attributes !== '' ? `<${child.name} ${attributes}>` : `<${child.name}>`;
 
 				placeholders.push({
 					placeholder,
@@ -499,7 +499,7 @@ async function embedStyle(
 	textToDoc: TextToDoc,
 	options: ParserOptions,
 ): Promise<_doc.builders.Doc | undefined> {
-	const isEmpty = /^\s*$/.test(content);
+	const isEmpty = /^\s*$/u.test(content);
 
 	switch (lang) {
 		case 'less':

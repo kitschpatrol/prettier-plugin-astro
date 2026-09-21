@@ -1,9 +1,9 @@
 import { serialize } from '@astrojs/compiler/utils';
-import {
-	type AstPath as AstP,
-	type BuiltInParserName,
-	type Doc,
-	type ParserOptions as ParserOpts,
+import type {
+	AstPath as AstP,
+	BuiltInParserName,
+	Doc,
+	ParserOptions as ParserOptions_,
 } from 'prettier';
 import { blockElements, formattableAttributes, type TagName } from './elements';
 import type {
@@ -17,7 +17,7 @@ import type {
 } from './nodes';
 
 export type printFn = (path: AstPath) => Doc;
-export type ParserOptions = ParserOpts<anyNode>;
+export type ParserOptions = ParserOptions_<anyNode>;
 export type AstPath = AstP<anyNode>;
 
 export const openingBracketReplace = '_Pé';
@@ -26,24 +26,24 @@ export const atSignReplace = 'ΩP_';
 export const dotReplace = 'ωP_';
 export const interrogationReplace = 'ΔP_';
 
-export function isInlineElement(path: AstPath, opts: ParserOptions, node: anyNode): boolean {
-	return node && isTagLikeNode(node) && !isBlockElement(node, opts) && !isPreTagContent(path);
+export function isInlineElement(path: AstPath, options: ParserOptions, node: anyNode): boolean {
+	return (node !== null && node !== undefined) && isTagLikeNode(node) && !isBlockElement(node, options) && !isPreTagContent(path);
 }
 
-export function isBlockElement(node: anyNode, opts: ParserOptions): boolean {
-	if (!node) {
+export function isBlockElement(node: anyNode, options: ParserOptions): boolean {
+	if (node === null || node === undefined) {
 		return false;
 	}
 
 	// All tags (element, custom-element, component, fragment) are considered
 	// block elements when htmlWhitespaceSensitivity is set to "ignore".
-	if (opts.htmlWhitespaceSensitivity === 'ignore') {
+	if (options.htmlWhitespaceSensitivity === 'ignore') {
 		return true;
 	}
 
 	return (
 		node.type === 'element' &&
-		opts.htmlWhitespaceSensitivity !== 'strict' &&
+		options.htmlWhitespaceSensitivity !== 'strict' &&
 		blockElements.includes(node.name as TagName)
 	);
 }
@@ -56,15 +56,11 @@ export function isIgnoreDirective(node: Node): boolean {
  *  Returns the content of the node
  */
 export function printRaw(node: anyNode, stripLeadingAndTrailingNewline = false): string {
-	if (!isNodeWithChildren(node)) {
+	if (!isNodeWithChildren(node) || (node.children.length === 0)) {
 		return '';
 	}
 
-	if (node.children.length === 0) {
-		return '';
-	}
-
-	let raw = node.children.reduce((prev: string, curr: Node) => prev + serialize(curr), '');
+	let raw = node.children.reduce((previous: string, current: Node) => previous + serialize(current), '');
 
 	if (!stripLeadingAndTrailingNewline) {
 		return raw;
@@ -85,11 +81,11 @@ export function printRaw(node: anyNode, stripLeadingAndTrailingNewline = false):
 }
 
 export function isNodeWithChildren(node: anyNode): node is anyNode & ParentLikeNode {
-	return node && 'children' in node && Array.isArray(node.children);
+	return (node !== null && node !== undefined) && 'children' in node && Array.isArray(node.children);
 }
 
 export const isEmptyTextNode = (node: anyNode): boolean => {
-	return !!node && node.type === 'text' && getUnencodedText(node).trim() === '';
+	return (node !== null && node !== undefined) && node.type === 'text' && getUnencodedText(node).trim() === '';
 };
 
 export function getUnencodedText(node: TextNode | CommentNode): string {
@@ -101,40 +97,36 @@ export function isTextNodeStartingWithLinebreak(node: TextNode, nrLines = 1): no
 }
 
 export function startsWithLinebreak(text: string, nrLines = 1): boolean {
-	return new RegExp(`^([\\t\\f\\r ]*\\n){${nrLines}}`).test(text);
+	return new RegExp(`^([\\t\\f\\r ]*\\n){${nrLines}}`, 'u').test(text);
 }
 
 export function endsWithLinebreak(text: string, nrLines = 1): boolean {
-	return new RegExp(`(\\n[\\t\\f\\r ]*){${nrLines}}$`).test(text);
+	return new RegExp(`(\\n[\\t\\f\\r ]*){${nrLines}}$`, 'u').test(text);
 }
 
-export function isTextNodeStartingWithWhitespace(node: Node): node is TextNode {
-	return isTextNode(node) && /^\s/.test(getUnencodedText(node));
+export function isTextNodeStartingWithWhitespace(node: Node | undefined): node is TextNode {
+	return isTextNode(node) && /^\s/u.test(getUnencodedText(node));
 }
 
 function endsWithWhitespace(text: string) {
-	return /\s$/.test(text);
+	return /\s$/u.test(text);
 }
 
-export function isTextNodeEndingWithWhitespace(node: Node): node is TextNode {
+export function isTextNodeEndingWithWhitespace(node: Node | undefined): node is TextNode {
 	return isTextNode(node) && endsWithWhitespace(getUnencodedText(node));
 }
 
 export function hasSetDirectives(node: TagLikeNode) {
-	const attributes = Array.from(node.attributes, (attr) => attr.name);
-	return attributes.some((attr) => ['set:html', 'set:text'].includes(attr));
+	const attributes = Array.from(node.attributes, (attribute) => attribute.name);
+	return attributes.some((attribute) => ['set:html', 'set:text'].includes(attribute));
 }
 
 /**
  * Check if given node's start tag should hug its first child. This is the case for inline elements when there's
  * no whitespace between the `>` and the first child.
  */
-export function shouldHugStart(node: anyNode, opts: ParserOptions): boolean {
-	if (isBlockElement(node, opts)) {
-		return false;
-	}
-
-	if (!isNodeWithChildren(node)) {
+export function shouldHugStart(node: anyNode, options: ParserOptions): boolean {
+	if (isBlockElement(node, options) || !isNodeWithChildren(node)) {
 		return false;
 	}
 
@@ -151,12 +143,8 @@ export function shouldHugStart(node: anyNode, opts: ParserOptions): boolean {
  * Check if given node's end tag should hug its last child. This is the case for inline elements when there's
  * no whitespace between the last child and the `</`.
  */
-export function shouldHugEnd(node: anyNode, opts: ParserOptions): boolean {
-	if (isBlockElement(node, opts)) {
-		return false;
-	}
-
-	if (!isNodeWithChildren(node)) {
+export function shouldHugEnd(node: anyNode, options: ParserOptions): boolean {
+	if (isBlockElement(node, options) || !isNodeWithChildren(node)) {
 		return false;
 	}
 
@@ -166,9 +154,7 @@ export function shouldHugEnd(node: anyNode, opts: ParserOptions): boolean {
 	}
 
 	const lastChild = children[children.length - 1];
-	if (isExpressionNode(lastChild)) {return true;}
-
-	if (isTagLikeNode(lastChild)) {return true;}
+	if (isExpressionNode(lastChild) || isTagLikeNode(lastChild)) {return true;}
 
 	return !isTextNodeEndingWithWhitespace(lastChild);
 }
@@ -176,17 +162,17 @@ export function shouldHugEnd(node: anyNode, opts: ParserOptions): boolean {
 /**
  * Returns true if the softline between `</tagName` and `>` can be omitted.
  */
-export function canOmitSoftlineBeforeClosingTag(path: AstPath, opts: ParserOptions): boolean {
-	return isLastChildWithinParentBlockElement(path, opts);
+export function canOmitSoftlineBeforeClosingTag(path: AstPath, options: ParserOptions): boolean {
+	return isLastChildWithinParentBlockElement(path, options);
 }
 
 function getChildren(node: anyNode): Node[] {
 	return isNodeWithChildren(node) ? node.children : [];
 }
 
-function isLastChildWithinParentBlockElement(path: AstPath, opts: ParserOptions): boolean {
+function isLastChildWithinParentBlockElement(path: AstPath, options: ParserOptions): boolean {
 	const parent = path.getParentNode();
-	if (!parent || !isBlockElement(parent, opts)) {
+	if (!parent || !isBlockElement(parent, options)) {
 		return false;
 	}
 
@@ -196,18 +182,18 @@ function isLastChildWithinParentBlockElement(path: AstPath, opts: ParserOptions)
 }
 
 export function trimTextNodeLeft(node: TextNode): void {
-	node.value = node.value && node.value.trimStart();
+	node.value = node.value.trimStart();
 }
 
 export function trimTextNodeRight(node: TextNode): void {
-	node.value = node.value && node.value.trimEnd();
+	node.value = node.value.trimEnd();
 }
 
 export function printClassNames(value: string) {
-	const lines = value.trim().split(/[\r\n]+/);
+	const lines = value.trim().split(/[\r\n]+/u);
 	const formattedLines = lines.map((line) => {
-		const spaces = /^\s+/.exec(line);
-		return (spaces ? spaces[0] : '') + line.trim().split(/\s+/).join(' ');
+		const spaces = /^\s+/u.exec(line);
+		return (spaces ? spaces[0] : '') + line.trim().split(/\s+/u).join(' ');
 	});
 	return formattedLines.join('\n');
 }
@@ -221,30 +207,33 @@ export function manualDedent(input: string): {
 	let minTabSize = Infinity;
 	let result = input;
 	// 1. normalize
-	result = result.replace(/\r\n/g, '\n');
+	result = result.replace(/\r\n/gu, '\n');
 
 	// 2. count tabSize
 	let char = '';
 	for (const line of result.split('\n')) {
-		if (!line) {continue;}
+		if (line === '') {continue;}
 
 		// if any line begins with a non-whitespace char, minTabSize is 0
-		if (line[0] && /^\S/.test(line[0])) {
+		if (/^\S/u.test(line)) {
 			minTabSize = 0;
 			break;
 		}
 
-		const match = /^(\s+)\S+/.exec(line); // \S ensures we don’t count lines of pure whitespace
-		if (match) {
-			if (match[1] && !char) {char = match[1][0];}
-
-			if (match[1].length < minTabSize) {minTabSize = match[1].length;}
+		const match = /^(\s+)\S+/u.exec(line); // \S ensures we don’t count lines of pure whitespace
+		if (match === null) {
+			continue;
 		}
+
+		const whitespace = match[1] ?? '';
+		if (char === '' && whitespace !== '') {char = whitespace.charAt(0);}
+
+		if (whitespace.length < minTabSize) {minTabSize = whitespace.length;}
 	}
 
 	// 3. reformat string
 	if (minTabSize > 0 && Number.isFinite(minTabSize)) {
-		result = result.replace(new RegExp(`^${new Array(minTabSize + 1).join(char)}`, 'gm'), '');
+		result = result.replace(new RegExp(`^${new Array(minTabSize + 1).join(char)}`, 'gmu'), '');
 	}
 
 	return {
@@ -255,24 +244,19 @@ export function manualDedent(input: string): {
 }
 
 /** True if the node is of type text */
-export function isTextNode(node: anyNode): node is TextNode {
-	return node.type === 'text';
+export function isTextNode(node: anyNode | undefined): node is TextNode {
+	return node?.type === 'text';
 }
 
-export function isExpressionNode(node: anyNode): node is ExpressionNode {
-	return node.type === 'expression';
+export function isExpressionNode(node: anyNode | undefined): node is ExpressionNode {
+	return node?.type === 'expression';
 }
 
 /** True if the node is TagLikeNode:
  *
  * ElementNode | ComponentNode | CustomElementNode | FragmentNode */
-export function isTagLikeNode(node: anyNode): node is TagLikeNode {
-	return (
-		node.type === 'element' ||
-		node.type === 'component' ||
-		node.type === 'custom-element' ||
-		node.type === 'fragment'
-	);
+export function isTagLikeNode(node: anyNode | undefined): node is TagLikeNode {
+	return node !== undefined && ['component', 'custom-element', 'element', 'fragment'].includes(node.type);
 }
 
 /**
@@ -289,12 +273,12 @@ export function getNextNode(path: AstPath): anyNode | null {
 	const node = path.getNode();
 	if (node) {
 		const siblings = getSiblings(path);
-		if (node.position?.start === siblings[siblings.length - 1].position?.start) {return null;}
+		if (node.position?.start === siblings[siblings.length - 1]?.position?.start) {return null;}
 
 		for (let i = 0; i < siblings.length; i++) {
 			const sibling = siblings[i];
-			if (sibling.position?.start === node.position?.start && i !== siblings.length - 1) {
-				return siblings[i + 1];
+			if (sibling?.position?.start === node.position?.start && i !== siblings.length - 1) {
+				return siblings[i + 1] ?? null;
 			}
 		}
 	}
@@ -303,7 +287,7 @@ export function getNextNode(path: AstPath): anyNode | null {
 }
 
 export const isPreTagContent = (path: AstPath): boolean => {
-	if (!path || !path.stack || !Array.isArray(path.stack)) {return false;}
+	if ((path === null || path === undefined) || (path.stack === null || path.stack === undefined) || !Array.isArray(path.stack)) {return false;}
 
 	return path.stack.some(
 		(node: anyNode) =>
@@ -321,8 +305,8 @@ interface QuoteResult {
 // Adapted from Prettier's source code as it's unfortunately not exported
 // https://github.com/prettier/prettier/blob/237e681936fc533c27d7ce8577d3fc98838a3314/src/common/util.js#L238
 export function getPreferredQuote(rawContent: string, preferredQuote: string): QuoteResult {
-	const double: QuoteResult = { quote: '"', regex: /"/g, escaped: '&quot;' };
-	const single: QuoteResult = { quote: "'", regex: /'/g, escaped: '&apos;' };
+	const double: QuoteResult = { quote: '"', regex: /"/gu, escaped: '&quot;' };
+	const single: QuoteResult = { quote: "'", regex: /'/gu, escaped: '&apos;' };
 
 	const preferred = preferredQuote === "'" ? single : double;
 	const alternate = preferred === single ? double : single;
@@ -333,10 +317,10 @@ export function getPreferredQuote(rawContent: string, preferredQuote: string): Q
 	// the string, we might want to enclose with the alternate quote instead, to
 	// minimize the number of escaped quotes.
 	if (rawContent.includes(preferred.quote) || rawContent.includes(alternate.quote)) {
-		const numPreferredQuotes = (preferred.regex.exec(rawContent) || []).length;
-		const numAlternateQuotes = (alternate.regex.exec(rawContent) || []).length;
+		const numberPreferredQuotes = (preferred.regex.exec(rawContent) || []).length;
+		const numberAlternateQuotes = (alternate.regex.exec(rawContent) || []).length;
 
-		result = numPreferredQuotes > numAlternateQuotes ? alternate : preferred;
+		result = numberPreferredQuotes > numberAlternateQuotes ? alternate : preferred;
 	}
 
 	return result;
@@ -344,7 +328,7 @@ export function getPreferredQuote(rawContent: string, preferredQuote: string): Q
 
 // Adapted from: https://github.com/prettier/prettier/blob/20ab6d6f1c5bd774621230b493a3b71d39383a2c/src/language-html/utils/index.js#LL336C1-L369C2
 export function inferParserByTypeAttribute(type: string): BuiltInParserName {
-	if (!type) {
+	if (type === '') {
 		return 'babel-ts';
 	}
 
@@ -368,7 +352,7 @@ export function inferParserByTypeAttribute(type: string): BuiltInParserName {
 			return 'glimmer';
 
 		default:
-			if (type.endsWith('json') || type.endsWith('importmap') || type === 'speculationrules') {
+			if (type === 'speculationrules' || type.endsWith('json') || type.endsWith('importmap')) {
 				return 'json';
 			}
 

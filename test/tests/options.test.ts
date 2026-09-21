@@ -1,3 +1,4 @@
+import { it } from 'vitest';
 import { test } from '../test-utils';
 
 const files = import.meta.glob('/test/fixtures/options/*/*', {
@@ -174,11 +175,11 @@ test(
 	true,
 );
 
-// // https://prettier.io/docs/en/options.html#html-whitespace-sensitivity
-// test('Can format an Astro file with prettier "htmlWhitespaceSensitivity: css" option',  'option-html-whitespace-sensitivity-css');
+// https://prettier.io/docs/en/options.html#html-whitespace-sensitivity
+it.todo('Can format an Astro file with prettier "htmlWhitespaceSensitivity: css" option');
 
-// // https://prettier.io/docs/en/options.html#html-whitespace-sensitivity
-// test('Can format an Astro file with prettier "htmlWhitespaceSensitivity: strict" option',  'option-html-whitespace-sensitivity-strict');
+// https://prettier.io/docs/en/options.html#html-whitespace-sensitivity
+it.todo('Can format an Astro file with prettier "htmlWhitespaceSensitivity: strict" option');
 
 // https://prettier.io/docs/en/options.html#html-whitespace-sensitivity
 test(
@@ -214,14 +215,14 @@ test(
 	'options/option-bracket-same-line-html-true-whitespace-sensitivity-ignore',
 );
 
-// // astro option: astroSortOrder
-// test('Can format an Astro file with prettier "astroSortOrder: markup | styles" option',  'option-astro-sort-order-markup-styles');
+// astro option: astroSortOrder
+it.todo('Can format an Astro file with prettier "astroSortOrder: markup | styles" option');
 
-// // astro option: astroSortOrder
-// test('Can format an Astro file with prettier "astroSortOrder: styles | markup" option',  'option-astro-sort-order-styles-markup');
+// astro option: astroSortOrder
+it.todo('Can format an Astro file with prettier "astroSortOrder: styles | markup" option');
 
-// // astro option: astroAllowShorthand
-// test('Can format an Astro file with prettier "astroAllowShorthand: true" option',  'option-astro-allow-shorthand-true');
+// astro option: astroAllowShorthand
+it.todo('Can format an Astro file with prettier "astroAllowShorthand: true" option');
 
-// // astro option: astroAllowShorthand
-// test('Can format an Astro file with prettier "astroAllowShorthand: false" option',  'option-astro-allow-shorthand-false');
+// astro option: astroAllowShorthand
+it.todo('Can format an Astro file with prettier "astroAllowShorthand: false" option');

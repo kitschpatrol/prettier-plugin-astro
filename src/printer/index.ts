@@ -1,6 +1,6 @@
-import { type Doc } from 'prettier';
+import type { Doc } from 'prettier';
 import { selfClosingTags } from './elements';
-import { type TextNode } from './nodes';
+import type { TextNode } from './nodes';
 import {
 	canOmitSoftlineBeforeClosingTag,
 	endsWithLinebreak,
@@ -49,19 +49,19 @@ const {
 let ignoreNext = false;
 
 // https://prettier.io/docs/en/plugins.html#print 
-export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
+export function print(path: AstPath, options: ParserOptions, printChild: printFn): Doc {
 	const node = path.node;
 
 	// 1. handle special node types
-	if (!node) {
+	if (node === null || node === undefined) {
 		return '';
 	}
 
 	if (ignoreNext && !isEmptyTextNode(node)) {
 		ignoreNext = false;
 		return [
-			opts.originalText
-				.slice(opts.locStart(node), opts.locEnd(node))
+			options.originalText
+				.slice(options.locStart(node), options.locEnd(node))
 				.split('\n')
 				.map((lineContent, i) => (i == 0 ? [lineContent] : [literalline, lineContent]))
 				.flat(),
@@ -75,7 +75,7 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 	// 2. handle printing
 	switch (node.type) {
 		case 'root': {
-			return [stripTrailingHardline(path.map(print, 'children')), hardline];
+			return [stripTrailingHardline(path.map(printChild, 'children')), hardline];
 		}
 
 		case 'text': {
@@ -92,9 +92,9 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 			// }
 
 			if (isEmptyTextNode(node)) {
-				const hasWhiteSpace = rawText.trim().length < getUnencodedText(node).length;
+				const hasWhitespace = rawText.trim().length < getUnencodedText(node).length;
 				const hasOneOrMoreNewlines = getUnencodedText(node).includes('\n');
-				const hasTwoOrMoreNewlines = /\n\s*\n\r?/.test(getUnencodedText(node));
+				const hasTwoOrMoreNewlines = /\n\s*\n\r?/u.test(getUnencodedText(node));
 				if (hasTwoOrMoreNewlines) {
 					return [hardline, hardline];
 				}
@@ -103,7 +103,7 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 					return hardline;
 				}
 
-				if (hasWhiteSpace) {
+				if (hasWhitespace) {
 					return line;
 				}
 
@@ -124,7 +124,7 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 		case 'custom-element':
 		case 'element': {
 			let isEmpty: boolean;
-			if (!node.children) {
+			if (node.children === null || node.children === undefined) {
 				isEmpty = true;
 			} else {
 				isEmpty = node.children.every((child) => isEmptyTextNode(child));
@@ -143,147 +143,144 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 					selfClosingTags.includes(node.name) ||
 					hasSetDirectives(node));
 
-			const isSingleLinePerAttribute = opts.singleAttributePerLine && node.attributes.length > 1;
+			const isSingleLinePerAttribute = options.singleAttributePerLine && node.attributes.length > 1;
 			const attributeLine = isSingleLinePerAttribute ? breakParent : '';
-			const attributes = join(attributeLine, path.map(print, 'attributes'));
+			const attributes = join(attributeLine, path.map(printChild, 'attributes'));
 
 			if (isSelfClosingTag) {
 				return group(['<', node.name, indent(attributes), line, `/>`]);
 			}
 
-			if (node.children) {
-				const children = node.children;
-				const firstChild = children[0];
-				const lastChild = children[children.length - 1];
+			if (node.children === null || node.children === undefined) {
+				return '';
+			}
 
-				// No hugging of content means it's either a block element and/or there's whitespace at the start/end
-				let noHugSeparatorStart:
-					| _doc.builders.Line
-					| _doc.builders.Softline
-					| _doc.builders.Hardline
-					| string = softline;
-				let noHugSeparatorEnd:
-					| _doc.builders.Line
-					| _doc.builders.Softline
-					| _doc.builders.Hardline
-					| string = softline;
-				const hugStart = shouldHugStart(node, opts);
-				const hugEnd = shouldHugEnd(node, opts);
+			const children = node.children;
+			const firstChild = children[0];
+			const lastChild = children[children.length - 1];
 
-				let body;
+			// No hugging of content means it's either a block element and/or there's whitespace at the start/end
+			let noHugSeparatorStart:
+				| _doc.builders.Line
+				| _doc.builders.Softline
+				| _doc.builders.Hardline
+				| string = softline;
+			let noHugSeparatorEnd:
+				| _doc.builders.Line
+				| _doc.builders.Softline
+				| _doc.builders.Hardline
+				| string = softline;
+			const hugStart = shouldHugStart(node, options);
+			const hugEnd = shouldHugEnd(node, options);
 
-				if (isEmpty) {
-					body =
-						isInlineElement(path, opts, node) &&
-						node.children.length &&
-						isTextNodeStartingWithWhitespace(node.children[0]) &&
-						!isPreTagContent(path)
-							? () => line
-							: () => (node.children.length > 0 ? softline : '');
-				} else if (isPreTagContent(path)) {
-					body = () => printRaw(node);
-				} else if (isInlineElement(path, opts, node) && !isPreTagContent(path)) {
-					body = () => path.map(print, 'children');
-				} else {
-					body = () => path.map(print, 'children');
-				}
+			let body;
 
-				const openingTag = [
-					'<',
-					node.name,
-					indent(
-						group([
-							attributes,
-							hugStart
-								? ''
-								: !isPreTagContent(path) && !opts.bracketSameLine
-									? dedent(softline)
-									: '',
-						]),
-					),
+			if (isEmpty) {
+				body =
+					firstChild !== undefined &&
+					isInlineElement(path, options, node) &&
+					isTextNodeStartingWithWhitespace(firstChild) &&
+					!isPreTagContent(path)
+						? () => line
+						: () => (node.children.length > 0 ? softline : '');
+			} else if (isPreTagContent(path)) {
+				body = () => printRaw(node);
+			} else {
+				body = () => path.map(printChild, 'children');
+			}
+
+			const openingTag = [
+				'<',
+				node.name,
+				indent(
+					group([
+						attributes,
+						hugStart
+							? ''
+							: !isPreTagContent(path) && !options.bracketSameLine
+								? dedent(softline)
+								: '',
+					]),
+				),
+			];
+
+			if (hugStart && hugEnd) {
+				const huggedContent = [
+					isSingleLinePerAttribute ? hardline : softline,
+					group(['>', body(), `</${node.name}`]),
 				];
 
-				if (hugStart && hugEnd) {
-					const huggedContent = [
-						isSingleLinePerAttribute ? hardline : softline,
-						group(['>', body(), `</${node.name}`]),
-					];
-
-					const omitSoftlineBeforeClosingTag =
-						isEmpty || canOmitSoftlineBeforeClosingTag(path, opts);
-					return group([
-						...openingTag,
-						isEmpty ? group(huggedContent) : group(indent(huggedContent)),
-						omitSoftlineBeforeClosingTag ? '' : softline,
-						'>',
-					]);
-				}
-
-				if (isPreTagContent(path)) {
-					noHugSeparatorStart = '';
-					noHugSeparatorEnd = '';
-				} else {
-					let didSetEndSeparator = false;
-
-					if (!hugStart && firstChild && isTextNode(firstChild)) {
-						if (
-							isTextNodeStartingWithLinebreak(firstChild) &&
-							firstChild !== lastChild &&
-							(!isInlineElement(path, opts, node) || isTextNodeEndingWithWhitespace(lastChild))
-						) {
-							noHugSeparatorStart = hardline;
-							noHugSeparatorEnd = hardline;
-							didSetEndSeparator = true;
-						} else if (isInlineElement(path, opts, node)) {
-							noHugSeparatorStart = line;
-						}
-
-						trimTextNodeLeft(firstChild);
-					}
-
-					if (!hugEnd && lastChild && isTextNode(lastChild)) {
-						if (isInlineElement(path, opts, node) && !didSetEndSeparator) {
-							noHugSeparatorEnd = line;
-						}
-
-						trimTextNodeRight(lastChild);
-					}
-				}
-
-				if (hugStart) {
-					return group([
-						...openingTag,
-						indent([softline, group(['>', body()])]),
-						noHugSeparatorEnd,
-						`</${node.name}>`,
-					]);
-				}
-
-				if (hugEnd) {
-					return group([
-						...openingTag,
-						'>',
-						indent([noHugSeparatorStart, group([body(), `</${node.name}`])]),
-						canOmitSoftlineBeforeClosingTag(path, opts) ? '' : softline,
-						'>',
-					]);
-				}
-
-				if (isEmpty) {
-					return group([...openingTag, '>', body(), `</${node.name}>`]);
-				}
-
+				const omitSoftlineBeforeClosingTag =
+					isEmpty || canOmitSoftlineBeforeClosingTag(path, options);
 				return group([
 					...openingTag,
+					group(isEmpty ? huggedContent : indent(huggedContent)),
+					omitSoftlineBeforeClosingTag ? '' : softline,
 					'>',
-					indent([noHugSeparatorStart, body()]),
+				]);
+			}
+
+			if (isPreTagContent(path)) {
+				noHugSeparatorStart = '';
+				noHugSeparatorEnd = '';
+			} else {
+				let didSetEndSeparator = false;
+
+				if (!hugStart && firstChild && isTextNode(firstChild)) {
+					if (
+						firstChild !== lastChild &&
+						isTextNodeStartingWithLinebreak(firstChild) &&
+						(!isInlineElement(path, options, node) || isTextNodeEndingWithWhitespace(lastChild))
+					) {
+						noHugSeparatorStart = hardline;
+						noHugSeparatorEnd = hardline;
+						didSetEndSeparator = true;
+					} else if (isInlineElement(path, options, node)) {
+						noHugSeparatorStart = line;
+					}
+
+					trimTextNodeLeft(firstChild);
+				}
+
+				if (!hugEnd && lastChild && isTextNode(lastChild)) {
+					if (!didSetEndSeparator && isInlineElement(path, options, node)) {
+						noHugSeparatorEnd = line;
+					}
+
+					trimTextNodeRight(lastChild);
+				}
+			}
+
+			if (hugStart) {
+				return group([
+					...openingTag,
+					indent([softline, group(['>', body()])]),
 					noHugSeparatorEnd,
 					`</${node.name}>`,
 				]);
 			}
 
-			// TODO: WIP
-			return '';
+			if (hugEnd) {
+				return group([
+					...openingTag,
+					'>',
+					indent([noHugSeparatorStart, group([body(), `</${node.name}`])]),
+					canOmitSoftlineBeforeClosingTag(path, options) ? '' : softline,
+					'>',
+				]);
+			}
+
+			if (isEmpty) {
+				return group([...openingTag, '>', body(), `</${node.name}>`]);
+			}
+
+			return group([
+				...openingTag,
+				'>',
+				indent([noHugSeparatorStart, body()]),
+				noHugSeparatorEnd,
+				`</${node.name}>`,
+			]);
 		}
 
 		case 'attribute': {
@@ -302,13 +299,13 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 						value = printClassNames(value);
 					}
 
-					const unescapedValue = value.replace(/&apos;/g, "'").replace(/&quot;/g, '"');
+					const unescapedValue = value.replace(/&apos;/gu, "'").replace(/&quot;/gu, '"');
 					const { escaped, quote, regex } = getPreferredQuote(
 						unescapedValue,
-						opts.jsxSingleQuote ? "'" : '"',
+						options.jsxSingleQuote ? "'" : '"',
 					);
 
-					const result = unescapedValue.replace(regex, escaped);
+					const result = unescapedValue.replace(regex, () => escaped);
 					return [line, name, '=', quote, result, quote];
 				case 'shorthand':
 					return [line, '{', name, '}'];
@@ -356,7 +353,7 @@ export function print(path: AstPath, opts: ParserOptions, print: printFn): Doc {
 function splitTextToDocs(node: TextNode): Doc[] {
 	const text = getUnencodedText(node);
 
-	const textLines = text.split(/[\t\n\f\r ]+/);
+	const textLines = text.split(/[\t\n\f\r ]+/u);
 
 	let docs = join(line, textLines).filter((doc) => doc !== '');
 

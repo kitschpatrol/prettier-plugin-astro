@@ -17,13 +17,13 @@ export async function format(
 			cursorOffset: -1,
 			...options,
 		});
-	} catch (e) {
-		if (e instanceof Error) {
-			throw e;
+	} catch (error) {
+		if (error instanceof Error) {
+			throw error;
 		}
 
-		if (typeof e === 'string') {
-			throw new Error(e);
+		if (typeof error === 'string') {
+			throw new Error(error, { cause: error });
 		}
 	}
 
@@ -44,13 +44,13 @@ async function markdownFormat(
 			cursorOffset: -1,
 			...options,
 		});
-	} catch (e) {
-		if (e instanceof Error) {
-			throw e;
+	} catch (error) {
+		if (error instanceof Error) {
+			throw error;
 		}
 
-		if (typeof e === 'string') {
-			throw new Error(e);
+		if (typeof error === 'string') {
+			throw new Error(error, { cause: error });
 		}
 	}
 
@@ -64,13 +64,13 @@ async function markdownFormat(
  * Utility to get `[input, output]` files
  */
 function getFiles(file: any, path: string, isMarkdown = false) {
-	const ext = isMarkdown ? 'md' : 'astro';
-	let input: string = file[`/test/fixtures/${path}/input.${ext}`];
-	let output: string = file[`/test/fixtures/${path}/output.${ext}`];
+	const extension = isMarkdown ? 'md' : 'astro';
+	let input: string = file[`/test/fixtures/${path}/input.${extension}`];
+	let output: string = file[`/test/fixtures/${path}/output.${extension}`];
 	// workaround: normalize end of lines to pass windows ci
-	if (input) {input = input.replace(/\r\n|\r/g, '\n');}
+	if (input !== undefined && input !== '') {input = input.replace(/\r\n|\r/gu, '\n');}
 
-	if (output) {output = output.replace(/\r\n|\r/g, '\n');}
+	if (output !== undefined && output !== '') {output = output.replace(/\r\n|\r/gu, '\n');}
 
 	return { input, output };
 }
@@ -80,14 +80,14 @@ function getOptions(files: any, path: string) {
 		return files[`/test/fixtures/${path}/options.js`].default;
 	}
 
-	let opts: object;
+	let options: object;
 	try {
-		opts = JSON.parse(files[`/test/fixtures/${path}/options.json`]);
+		options = JSON.parse(files[`/test/fixtures/${path}/options.json`]);
 	} catch {
-		opts = {};
+		options = {};
 	}
 
-	return opts;
+	return options;
 }
 
 /**
@@ -112,16 +112,16 @@ export function test(
 
 		const formatFile = isMarkdown ? markdownFormat : format;
 
-		const opts = {
+		const options = {
 			...getOptions(files, path),
 			cursorOffset,
 		};
 
-		const firstPass = await formatFile(input, opts);
+		const firstPass = await formatFile(input, options);
 		expect(firstPass.formatted, 'Incorrect formatting').toBe(output);
 
 		// test that our formatting is idempotent
-		const secondPass = await formatFile(firstPass.formatted, opts);
+		const secondPass = await formatFile(firstPass.formatted, options);
 		expect(firstPass.formatted === secondPass.formatted, 'Formatting is not idempotent').toBe(true);
 	});
 }

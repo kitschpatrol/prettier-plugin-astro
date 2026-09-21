@@ -1,3 +1,4 @@
+import { it } from 'vitest';
 import { test } from '../test-utils';
 
 const files = {
@@ -27,8 +28,8 @@ test(
 	'other/doctype-with-embedded-expr',
 );
 
-// // note(drew): this should be fixed in new Parser. And as this is an HTML4 / deprecated / extreme edge case, probably fine to ignore?
-// test.failing('Can format an Astro file with `<!DOCTYPE>` with extraneous attributes', Prettier, 'doctype-with-extra-attributes');
+// note(drew): this should be fixed in new Parser. And as this is an HTML4 / deprecated / extreme edge case, probably fine to ignore?
+it.todo('Can format an Astro file with `<!DOCTYPE>` with extraneous attributes');
 
 test('Can format an Astro file with fragments', files, 'other/fragment');
 
@@ -44,7 +45,7 @@ test(
 	'other/expr-and-html-comment',
 );
 
-// test.failing('an Astro file with an invalidly unclosed tag is still formatted', Prettier, 'unclosed-tag');
+it.todo('an Astro file with an invalidly unclosed tag is still formatted');
 
 test(
 	'Can format an Astro file with components that are the uppercase version of html elements',
@@ -80,11 +81,11 @@ test(
 	'other/prettier-ignore-js',
 );
 
-// // note(drew): this _may_ be covered under the 'prettier-ignore-html' test. But if any bugs arise, let’s add more tests!
-// test.todo("properly follow prettier' advice on formatting comments");
+// note(drew): this _may_ be covered under the 'prettier-ignore-html' test. But if any bugs arise, let’s add more tests!
+it.todo("properly follow prettier' advice on formatting comments");
 
-// // note(drew): I think this is a function of Astro’s parser, not Prettier. We’ll have to handle helpful error messages there!
-// test.todo('test whether invalid files provide helpful support messages / still try to be parsed by prettier?');
+// note(drew): I think this is a function of Astro’s parser, not Prettier. We’ll have to handle helpful error messages there!
+it.todo('test whether invalid files provide helpful support messages / still try to be parsed by prettier?');
 
 test('Format spread operator', files, 'other/spread-operator');
 
