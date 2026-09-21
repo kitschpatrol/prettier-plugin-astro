@@ -1,3 +1,13 @@
+> [!IMPORTANT]
+>
+> **Deprecated**
+>
+> **Use the upstream [prettier-plugin-astro](https://www.npmjs.com/package/prettier-plugin-astro) instead.**
+>
+> As of the [upstream v1.0.1 release](https://github.com/withastro/prettier-plugin-astro/releases/tag/v1.0.1) on September 16, 2026, all fixes this fork existed to patch have been resolved. This fork will no longer be maintained.
+
+---
+
 <!-- title -->
 
 # @kitschpatrol/prettier-plugin-astro
