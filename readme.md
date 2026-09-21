@@ -51,7 +51,6 @@ This is a reluctant fork of the official [Prettier Plugin for Astro](https://git
 ## Branches
 
 - [main](https://github.com/kitschpatrol/prettier-plugin-astro/tree/main) Tracks upstream without modifications.
-- [fix-nested-script-tags](https://github.com/kitschpatrol/prettier-plugin-astro/tree/fix-nested-script-tags) Clean merge-able branch of changes.
 - [fork-release](https://github.com/kitschpatrol/prettier-plugin-astro/tree/fork-release) Branch with additional project template and readme changes for NPM releases.
 
 ## Availability
