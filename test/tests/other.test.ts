@@ -58,9 +58,21 @@ test('Can format an Astro file with a script tag inside it', files, 'other/with-
 
 test('Can format an Astro file with scripts in different languages', files, 'other/script-types');
 
-test('Can format an Astro file with a conditional script tag inside it', files, 'other/with-conditional-script');
+test('Can format TypeScript inside a script tag', files, 'other/script-typescript');
 
-test('Can format an Astro file with a conditional style tag inside it', files, 'other/with-conditional-style');
+// Fork regression guards for https://github.com/withastro/prettier-plugin-astro/issues/452
+// and https://github.com/withastro/prettier-plugin-astro/issues/454.
+test(
+	'Can format an Astro file with a conditional script tag inside it',
+	files,
+	'other/with-conditional-script',
+);
+
+test(
+	'Can format an Astro file with a conditional style tag inside it',
+	files,
+	'other/with-conditional-style',
+);
 
 test(
 	'Can format an Astro file with conditional script and style tags inside it',
@@ -110,6 +122,18 @@ test(
 	'other/expression-with-inline-comments',
 );
 
+test(
+	'Prints comments before raw elements in conditional branches',
+	files,
+	'other/comment-before-raw-element',
+);
+
+test(
+	'Prints comments before elements handled by the custom children printer',
+	files,
+	'other/comment-before-custom-element',
+);
+
 test('Can format JSX comments properly', files, 'other/jsx-comments');
 
 test(
@@ -147,3 +171,59 @@ test('Can ignore self-closing elements', files, 'other/ignore-self-close');
 test('can format spread attributes', files, 'other/spread-attributes');
 
 test('can format with cursor position', files, 'other/format-with-cursor-position', false, 313);
+
+test('Can format doctypes with extra attributes', files, 'other/doctype-with-extra-attributes');
+
+test('Can hug inline elements', files, 'other/hugging');
+
+test(
+	'Can format frontmatter preceded by whitespace',
+	files,
+	'other/frontmatter-leading-whitespace',
+);
+
+test('Can format expressions with parenthesized types', files, 'other/parenthesized-type');
+
+test(
+	'Keeps a container whose only content is a slot free of whitespace',
+	files,
+	'other/slot-empty-container',
+);
+
+test(
+	'Keeps a container whose only content is a slot free of whitespace in html mode',
+	files,
+	'other/slot-empty-container-html',
+);
+
+test('Keeps the spaces in text directly inside body', files, 'other/body-content-whitespace');
+
+test('Can format components with a dotted name', files, 'other/dotted-component-name');
+
+test('Escapes quotes in style attribute values', files, 'other/style-attribute-quotes');
+
+test(
+	'Only lends a closing bracket to a sibling that withholds it',
+	files,
+	'other/lending-closing-bracket',
+);
+
+test(
+	'Keeps a container whose only content is a slot free of whitespace in jsx mode',
+	files,
+	'other/slot-empty-container-jsx',
+);
+
+test('Keeps commas that belong to a srcset URL', files, 'other/srcset-commas');
+
+test(
+	'Dangles the closing bracket without a blank line when attributes break',
+	files,
+	'other/dangling-bracket-attributes',
+);
+
+test(
+	'Leaves every run to the author under strict whitespace sensitivity',
+	files,
+	'other/strict-sensitivity-none',
+);
