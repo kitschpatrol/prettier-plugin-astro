@@ -7,6 +7,7 @@ const files = import.meta.glob('/test/fixtures/errors/**/*', {
 	import: 'default',
 });
 
+// eslint-disable-next-line unicorn/no-unnecessary-parameters
 function getFile(allFiles: any, path: string): string {
 	return allFiles[path];
 }
