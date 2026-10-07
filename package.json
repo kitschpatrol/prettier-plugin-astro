@@ -1,12 +1,13 @@
 {
 	"name": "@kitschpatrol/prettier-plugin-astro",
 	"version": "0.14.1-fork.6",
-	"description": "A fork of Prettier Plugin Astro with minor fixes.",
+	"description": "Fork of Prettier Plugin Astro with minor fixes.",
 	"keywords": [
 		"prettier-plugin",
 		"prettier",
 		"astro",
-		"formatter"
+		"formatter",
+		"npm-package"
 	],
 	"homepage": "https://github.com/kitschpatrol/prettier-plugin-astro",
 	"bugs": "https://github.com/kitschpatrol/prettier-plugin-astro/issues",
@@ -43,6 +44,7 @@
 		"clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX -e !.claude/",
 		"fix": "ksc fix",
 		"lint": "ksc lint",
+		"prepare": "skills experimental_sync -y -f",
 		"release": "bumpp --preid fork --commit 'Release: %s' && pnpm build && pnpm publish --otp $(op item get npm --otp) --tag latest",
 		"test": "vitest run"
 	},
@@ -52,23 +54,24 @@
 	},
 	"devDependencies": {
 		"@arethetypeswrong/core": "^0.18.5",
-		"@kitschpatrol/shared-config": "^8.9.0",
+		"@kitschpatrol/shared-config": "^8.13.1",
 		"@types/node": "~24.13.4",
 		"bumpp": "^12.3.0",
-		"prettier": "^3.9.8",
-		"publint": "^0.3.24",
+		"prettier": "^3.9.9",
+		"publint": "^0.3.25",
 		"shx": "^0.4.0",
+		"skills": "^1.7.0",
 		"tsdown": "^0.23.0",
 		"typescript": "~6.0.3",
-		"vite": "^8.3.0",
-		"vitest": "^5.0.1"
+		"vite": "^8.3.3",
+		"vitest": "^5.0.3"
 	},
 	"peerDependencies": {
 		"prettier": "^3.7.0"
 	},
-	"packageManager": "pnpm@12.4.1",
+	"packageManager": "pnpm@12.9.1",
 	"engines": {
-		"node": ">=18.0.0"
+		"node": "^18.0.0 || ^20.0.0 || ^22.0.0 || ^24.0.0 || >=26.0.0"
 	},
 	"devEngines": {
 		"runtime": {

@@ -24,7 +24,7 @@
 
 <!-- short-description -->
 
-**A fork of Prettier Plugin Astro with minor fixes.**
+**Fork of Prettier Plugin Astro with minor fixes.**
 
 <!-- /short-description -->
 
