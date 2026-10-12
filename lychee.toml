@@ -1,0 +1,2 @@
+# These formatter fixtures contain root-relative links from the Astro documentation.
+exclude_path = ['(^|/)test/fixtures/markdown/embedded-in-markdown/(input|output)\.md$']
