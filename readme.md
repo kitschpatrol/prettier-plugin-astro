@@ -63,7 +63,7 @@ To install:
 pnpm add -D @kitschpatrol/prettier-plugin-astro
 ```
 
-It will be deprecated when fixes are available upstream.
+The fixes are now available upstream, so this package is deprecated. See the notice above.
 
 ## More information
 
