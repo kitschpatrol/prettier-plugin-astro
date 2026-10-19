@@ -1,0 +1,2 @@
+# Fixtures copied from the Astro docs contain root-relative links that can't be resolved locally
+exclude_path = ['test/fixtures/markdown/embedded-in-markdown/(input|output)\.md$']
