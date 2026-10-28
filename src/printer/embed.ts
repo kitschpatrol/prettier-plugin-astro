@@ -65,9 +65,7 @@ export const embed = ((path: AstPath, options: Options) => {
 			const jsxNode = makeNodeJSXCompatible<ExpressionNode>(nodeWithPlaceholders);
 			const textContent = printRaw(jsxNode);
 
-			let content: Doc;
-
-			content = await wrapParserTryCatch(textToDoc, textContent, {
+			let content: Doc = await wrapParserTryCatch(textToDoc, textContent, {
 				...options,
 				parser: 'astroExpressionParser',
 			});
