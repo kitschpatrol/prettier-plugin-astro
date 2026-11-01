@@ -9,6 +9,5 @@ pnpm-lock.yaml
 skills-lock.json
 
 # Customizations
-readme-upstream.md
 src/
 test/
