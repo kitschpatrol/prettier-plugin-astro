@@ -5,7 +5,6 @@ export default cspellConfig({
 	ignoreWords: [
 		'angelikatyborska',
 		'autocloses',
-		'fflate',
 		'hardline',
 		'hardlines',
 		'literalline',
